@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "builds": [{ "src": "index.html", "use": "@vercel/static" }],
+  "routes": [{ "src": "/(.*)", "dest": "/index.html" }]
+}
+```
+- Click **File → Save As**
+- Navigate to your Desktop
+- In the **"File name"** box type: `vercel.json`
+- In the **"Save as type"** dropdown select: **All Files (\*.\*)**
+- Click Save
+
+3. Back on GitHub's upload page, drag both files (`index.html` and `vercel.json`) into the upload box
+4. Scroll down and click **"Commit changes"** (green button)
+
+---
+
+## STEP 5 — Create a Vercel account (2 minutes)
+
+1. Go to: **https://vercel.com/signup**
+2. Click **"Continue with GitHub"** — this links your GitHub automatically
+3. Authorize Vercel when it asks
+4. It may ask for your card — enter it (you will **not** be charged for a static site on the free plan)
+
+---
+
+## STEP 6 — Deploy your site (2 minutes)
+
+1. Once logged into Vercel, click **"Add New…"** → **"Project"**
+2. You'll see `india-index-dashboard` listed under your GitHub repos — click **"Import"**
+3. On the next screen, **don't change anything** — just click the big **"Deploy"** button
+4. Wait about 60 seconds — you'll see a progress bar
+
+When you see the **confetti and a preview image** of your dashboard — **it's live!** 🎉
+
+---
+
+## STEP 7 — Open your live website
+
+Vercel gives you a URL that looks like:
+```
+https://india-index-dashboard-xyz.vercel.app
