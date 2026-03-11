@@ -1082,57 +1082,31 @@ td { padding: 13px 16px; font-size: 13px; }
         <button class="detail-back" onclick="showPage('global')">← Back to Global Indexes</button>
         <div class="detail-meta-row">
           <div class="detail-rank-block">
-            <div class="detail-rank-num">38</div>
-            <div class="detail-rank-label">of 139 countries</div>
-            <div class="detail-rank-change" style="color:var(--success)">▲ +6 from 2022</div>
+            <div class="detail-rank-num" id="detail-rank-num">—</div>
+            <div class="detail-rank-label" id="detail-rank-of">of — countries</div>
+            <div class="detail-rank-change" id="detail-rank-change" style="margin-top:8px;font-size:13px;font-weight:600"></div>
           </div>
           <div class="detail-info">
-            <div class="detail-name">Logistics Performance Index (LPI)</div>
-            <div class="detail-publisher">Published by: World Bank · Released 2023</div>
-            <div class="detail-tags">
-              <span class="detail-tag" style="background:rgba(75,159,255,0.1);color:#4b9fff">Economy</span>
-              <span class="detail-tag" style="background:rgba(34,211,160,0.1);color:#22d3a0">Infrastructure</span>
-              <span class="freshness fresh">Fresh (2023)</span>
-              <span class="source-badge api">🔌 Official API</span>
-            </div>
-            <div class="detail-desc">
-              The Logistics Performance Index (LPI) measures the logistical capability of countries on a scale of 1 to 5 across 6 dimensions: customs, infrastructure, international shipments, logistics quality, tracking & tracing, and timeliness.
-            </div>
+            <div class="detail-name" id="detail-index-name">—</div>
+            <div class="detail-publisher" id="detail-index-publisher"></div>
+            <div class="detail-tags" id="detail-tags-row"></div>
+            <div class="detail-desc" id="detail-index-desc"></div>
           </div>
         </div>
       </div>
 
       <div class="chart-grid">
         <div class="chart-card" style="grid-column: 1 / -1">
-          <div class="chart-title">India's LPI Rank — Historical Trend (2010–2023)</div>
-          <div class="chart-meta">Lower rank = better performance · Source: World Bank API</div>
+          <div class="chart-title" id="detail-chart-title">Historical Trend</div>
+          <div class="chart-meta" id="detail-chart-meta"></div>
           <div class="chart-container" style="height:260px"><canvas id="chartDetailTrend"></canvas></div>
         </div>
       </div>
 
-      <div class="section-header">
-        <div><div class="section-title">All Countries — 2023 Rankings</div></div>
-      </div>
-      <div class="table-wrapper">
-        <div class="table-toolbar">
-          <input class="search-input" placeholder="Search countries...">
-          <button class="export-btn">⬇ Export</button>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Rank</th><th>Country</th><th>Score</th><th>Customs</th><th>Infrastructure</th><th>Timeliness</th>
-            </tr>
-          </thead>
-          <tbody id="country-tbody"></tbody>
-        </table>
-      </div>
-
       <div class="method-section">
         <h3>📐 Methodology Notes</h3>
-        <p>The LPI 2023 is based on a survey of ~6,000 country experts including logistics professionals, freight forwarders and express carriers. Respondents evaluate eight foreign countries randomly drawn from a pool of their most important trading partners.</p>
-        <p>The six dimensions are: (1) Efficiency of customs clearance, (2) Quality of trade & transport infrastructure, (3) Ease of arranging competitively priced international shipments, (4) Competence and quality of logistics services, (5) Ability to track & trace consignments, (6) Frequency with which shipments reach the consignee within scheduled delivery times.</p>
-        <div class="method-warning">⚠ Note: India skipped 2018 LPI survey. 2018 rank is extrapolated from trend — labeled LOW confidence in the database.</div>
+        <p id="detail-methodology-text"></p>
+        <div class="method-warning" id="detail-warning" style="display:none"></div>
       </div>
     </div>
 
@@ -1411,7 +1385,6 @@ function showPage(id) {
   
   // Init charts lazily
   if (id === 'home' && !chartsInit.home) { initHomeCharts(); chartsInit.home = true; }
-  if (id === 'detail' && !chartsInit.detail) { initDetailChart(); chartsInit.detail = true; }
   if (id === 'statedetail' && !chartsInit.statedetail) { initStateCharts(); chartsInit.statedetail = true; }
   if (id === 'compare' && !chartsInit.compare) { initCompareChart(); chartsInit.compare = true; }
   if (id === 'state') renderStateLegend();
@@ -1432,13 +1405,176 @@ function toggleTheme() {
   if (currentPage === 'home') { initHomeCharts(); chartsInit.home = true; }
 }
 
+// ─── CURRENT DETAIL INDEX ─────────────────────────────────────
+let currentDetailSlug = null;
+
+// ─── INDEX DETAIL DATA (descriptions, methodology, trend data) ─
+const INDEX_DETAIL_DATA = {
+  lpi: {
+    trendLabels: ['2010','2012','2014','2016','2018*','2020','2023'],
+    trendData: [47, 46, 54, 35, 44, 44, 38],
+    trendNote: '* 2018: India skipped survey — rank extrapolated (LOW confidence)',
+    methodology: 'Based on a survey of ~6,000 logistics professionals globally. Measures 6 dimensions: Customs, Infrastructure, International Shipments, Logistics Quality, Tracking & Tracing, and Timeliness.',
+    warning: '⚠ India skipped 2018 LPI survey. The 2018 rank is extrapolated from trend and labeled LOW confidence.',
+    tags: ['Economy','Infrastructure'],
+  },
+  hdi: {
+    trendLabels: ['2010','2012','2015','2017','2019','2021','2022','2025'],
+    trendData: [0.581, 0.598, 0.619, 0.636, 0.645, 0.633, 0.676, 0.685],
+    trendNote: 'HDI Score (higher = better)',
+    methodology: 'Composite index measuring three dimensions: long and healthy life (life expectancy), knowledge (education), and decent standard of living (GNI per capita). Published in the UNDP Human Development Report 2025.',
+    warning: null,
+    tags: ['Human Development'],
+  },
+  cpi: {
+    trendLabels: ['2016','2017','2018','2019','2020','2021','2022','2023','2024'],
+    trendData: [79, 81, 78, 80, 86, 85, 85, 93, 96],
+    trendNote: 'Rank (lower = less corrupt = better)',
+    methodology: 'Aggregates data from expert assessments and business surveys across 13 data sources. Scale of 0 (highly corrupt) to 100 (very clean). 180 countries ranked. Published annually by Transparency International.',
+    warning: '⚠ India\'s score dropped from 40 (2022) to 39 (2023) to 38 (2024), reflecting a worsening trend in perceived corruption.',
+    tags: ['Transparency','Governance'],
+  },
+  ghi: {
+    trendLabels: ['2016','2017','2018','2019','2020','2021','2022','2023','2024'],
+    trendData: [97, 100, 103, 102, 94, 101, 107, 111, 111],
+    trendNote: 'Rank (lower = better)',
+    methodology: 'Measures hunger using 4 indicators: undernourishment, child wasting, child stunting, and child mortality. Score of 27.3 in 2024 indicates "serious" hunger level.',
+    warning: '⚠ The Government of India disputes GHI methodology, particularly the undernourishment survey methods. Rankings are included for completeness with MEDIUM confidence.',
+    tags: ['Health'],
+  },
+  gii: {
+    trendLabels: ['2015','2017','2019','2020','2021','2022','2023','2024'],
+    trendData: [81, 60, 52, 48, 46, 40, 40, 39],
+    trendNote: 'Rank (lower = better) — India improved 42 positions since 2015',
+    methodology: 'Evaluates 133 economies on innovation inputs (institutions, human capital, infrastructure, market sophistication, business sophistication) and outputs (knowledge, technology, creativity). Published by WIPO.',
+    warning: null,
+    tags: ['Innovation'],
+  },
+  epi: {
+    trendLabels: ['2014','2016','2018','2020','2022'],
+    trendData: [155, 141, 177, 168, 180],
+    trendNote: 'Rank (lower = better)',
+    methodology: 'Ranks 180 countries across 40 performance indicators covering ecosystem vitality and environmental health. Published by Yale Center for Environmental Law & Policy and Columbia University.',
+    warning: '⚠ India disputes EPI methodology, particularly around air quality weighting. Government cites renewable energy progress not fully captured by this index.',
+    tags: ['Environment'],
+  },
+  eodb: {
+    trendLabels: ['2014','2015','2016','2017','2018','2019','2020'],
+    trendData: [142, 130, 130, 100, 77, 63, 63],
+    trendNote: 'Rank (lower = better) — Index discontinued in 2021',
+    methodology: 'Measured business regulations across 10 areas including starting a business, getting credit, paying taxes, and trading across borders. Discontinued by World Bank in September 2021.',
+    warning: '⚠ This index was discontinued in 2021. Last available rank is 63rd (2020). World Bank is developing a successor called Business Enabling Environment (BEE) index.',
+    tags: ['Economy'],
+  },
+  pfi: {
+    trendLabels: ['2018','2019','2020','2021','2022','2023','2024'],
+    trendData: [138, 140, 142, 142, 150, 161, 159],
+    trendNote: 'Rank (lower = better)',
+    methodology: 'Evaluates pluralism, media independence, legislative framework, transparency, infrastructure, and safety of journalists. Published annually by Reporters Without Borders (RSF).',
+    warning: '⚠ Government of India disputes RSF methodology. Rankings reflect RSF\'s assessment of media freedom conditions.',
+    tags: ['Governance','Transparency'],
+  },
+  gggi: {
+    trendLabels: ['2018','2019','2020','2021','2022','2023','2024','2025'],
+    trendData: [108, 112, 112, 140, 135, 127, 129, 131],
+    trendNote: 'Rank (lower = better)',
+    methodology: 'Measures gender parity across 4 dimensions: Economic Participation, Educational Attainment, Health & Survival, and Political Empowerment. Published by World Economic Forum.',
+    warning: '⚠ India scores particularly low in Economic Participation (142nd) and Health & Survival due to sex ratio at birth skew.',
+    tags: ['Gender'],
+  },
+  hci_wb: {
+    trendLabels: ['2018','2020'],
+    trendData: [115, 116],
+    trendNote: 'Rank — index paused since 2020',
+    methodology: 'Measures human capital outcomes: probability of survival to age 5, expected years of school, harmonized test scores, adult survival rate, and healthy growth (no stunting). Published by World Bank.',
+    warning: '⚠ World Bank has not released a new HCI since 2020. Last rank: 116/174.',
+    tags: ['Human Development','Education'],
+  },
+  ccpi: {
+    trendLabels: ['2020','2021','2022','2023','2024','2025'],
+    trendData: [9, 10, 10, 8, 7, 10],
+    trendNote: 'Rank — Top 3 positions intentionally left vacant each year',
+    methodology: 'Evaluates national climate policy, renewable energy, and GHG emissions. Top 3 ranks always left vacant as no country meets 1.5°C-compatible targets. So rank 10 is effectively among top performers. Published by Germanwatch/CAN.',
+    warning: null,
+    tags: ['Environment'],
+  },
+  whr: {
+    trendLabels: ['2019','2020','2021','2022','2023','2024','2025'],
+    trendData: [140, 144, 139, 136, 126, 126, 118],
+    trendNote: 'Rank (lower = better)',
+    methodology: 'Based on Gallup World Poll self-reported life evaluations (Cantril ladder). Also considers GDP per capita, social support, healthy life expectancy, freedom, generosity, and corruption perceptions.',
+    warning: null,
+    tags: ['Human Development'],
+  },
+  gpi: {
+    trendLabels: ['2019','2020','2021','2022','2023','2024','2025'],
+    trendData: [141, 139, 135, 135, 126, 116, 115],
+    trendNote: 'Rank (lower = better)',
+    methodology: 'Measures peace using 23 indicators across societal safety, ongoing conflict, and militarisation. Published by Institute for Economics & Peace.',
+    warning: null,
+    tags: ['Governance'],
+  },
+  wci: {
+    trendLabels: ['2020','2021','2022','2023','2024'],
+    trendData: [43, 43, 37, 40, 39],
+    trendNote: 'Rank (lower = better)',
+    methodology: 'Ranks 67 economies based on Economic Performance, Government Efficiency, Business Efficiency, and Infrastructure. Published by IMD World Competitiveness Center.',
+    warning: null,
+    tags: ['Economy'],
+  },
+  roli: {
+    trendLabels: ['2020','2021','2022','2023','2024'],
+    trendData: [69, 79, 77, 79, 79],
+    trendNote: 'Rank (lower = better)',
+    methodology: 'Measures rule of law across 8 dimensions: constraints on government, absence of corruption, open government, fundamental rights, order & security, regulatory enforcement, civil justice, and criminal justice.',
+    warning: null,
+    tags: ['Governance'],
+  },
+};
+
+function openIndexDetail(slug) {
+  const index = GLOBAL_DATA.find(d => d.slug === slug);
+  const detail = INDEX_DETAIL_DATA[slug];
+  if (!index || !detail) return;
+
+  currentDetailSlug = slug;
+
+  // Populate detail page
+  document.getElementById('detail-rank-num').textContent = index.rank;
+  document.getElementById('detail-rank-of').textContent = `of ${index.total} countries`;
+  const changeEl = document.getElementById('detail-rank-change');
+  changeEl.textContent = index.change > 0 ? `▲ +${index.change} from previous` : index.change < 0 ? `▼ ${index.change} from previous` : '— No change';
+  changeEl.style.color = index.change > 0 ? 'var(--success)' : index.change < 0 ? 'var(--danger)' : 'var(--text3)';
+
+  document.getElementById('detail-index-name').textContent = index.name;
+  document.getElementById('detail-index-publisher').textContent = `Published by: ${index.publisher} · ${index.year}`;
+  document.getElementById('detail-tags-row').innerHTML = detail.tags.map(t =>
+    `<span class="detail-tag" style="background:rgba(75,159,255,0.1);color:#4b9fff">${t}</span>`
+  ).join('') + `<span class="freshness fresh">Data: ${index.year}</span>
+   <span class="source-badge ${index.sourceType}">${index.sourceType === 'api' ? '🔌 Official API' : index.sourceType === 'csv' ? '📄 Official CSV' : '📑 Official PDF'}</span>`;
+
+  document.getElementById('detail-chart-title').textContent = `India's ${index.name} — Historical Trend`;
+  document.getElementById('detail-chart-meta').textContent = `${index.publisher} · ${detail.trendNote}`;
+  document.getElementById('detail-methodology-text').textContent = detail.methodology;
+  const warnEl = document.getElementById('detail-warning');
+  if (detail.warning) { warnEl.textContent = detail.warning; warnEl.style.display = 'flex'; }
+  else { warnEl.style.display = 'none'; }
+
+  chartsInit.detail = false;
+  showPage('detail');
+  setTimeout(() => {
+    initDetailChart(index, detail);
+    chartsInit.detail = true;
+  }, 50);
+}
+
 // ─── RENDER HOME CARDS ────────────────────────────────────────
 function renderHomeCards() {
   const sorted = [...GLOBAL_DATA].sort((a,b) => Math.abs(b.change) - Math.abs(a.change)).slice(0, 6);
   const el = document.getElementById('global-cards-home');
   if (!el) return;
   el.innerHTML = sorted.map(d => `
-    <div class="index-card" onclick="showPage('detail')">
+    <div class="index-card" onclick="openIndexDetail('${d.slug}')">
       <div class="card-top">
         <span class="card-category ${d.category}">${d.category.replace('_',' ').toUpperCase()}</span>
         <div class="card-rank">
@@ -1466,7 +1602,7 @@ function renderGlobalTable() {
   const tbody = document.getElementById('global-tbody');
   if (!tbody) return;
   tbody.innerHTML = filteredGlobal.map(d => `
-    <tr onclick="showPage('detail')" style="cursor:pointer">
+    <tr onclick="openIndexDetail('${d.slug}')" style="cursor:pointer">
       <td>
         <div class="td-name">${d.name}</div>
         <div class="td-sub">${d.publisher}</div>
@@ -1745,22 +1881,24 @@ function initHomeCharts() {
   });
 }
 
-function initDetailChart() {
+function initDetailChart(index, detail) {
   const C = getChartColors();
+  const isRank = !detail.trendNote.toLowerCase().includes('score');
   destroyChart('chartDetailTrend');
   new Chart(document.getElementById('chartDetailTrend').getContext('2d'), {
     type: 'line',
     data: {
-      labels: ['2010','2012','2014','2016','2018*','2020','2023'],
+      labels: detail.trendLabels,
       datasets: [{
-        label: 'India Rank',
-        data: [47, 46, 54, 35, 44, 44, 38],
-        borderColor: C.accent, backgroundColor: C.accent + '18',
+        label: `India — ${index.name}`,
+        data: detail.trendData,
+        borderColor: C.accent,
+        backgroundColor: C.accent + '18',
         tension: 0.4, fill: true, pointRadius: 6,
-        pointBackgroundColor: ['#ff7a2f','#ff7a2f','#ff7a2f','#ff7a2f','#f59e0b','#ff7a2f','#ff7a2f'],
+        pointBackgroundColor: C.accent,
       }]
     },
-    options: chartOpts('Rank (lower = better)', C, true)
+    options: chartOpts(detail.trendNote, C, isRank)
   });
 }
 
