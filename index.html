@@ -1773,24 +1773,29 @@ function triggerAll() {
 
 // ─── FILTER FUNCTIONS ────────────────────────────────────────
 function filterGlobal() {
-  const q = document.getElementById('globalSearch')?.value.toLowerCase() ?? '';
-  const cat = document.getElementById('catFilter')?.value ?? '';
-  const yr = document.getElementById('yearFilter')?.value ?? '';
-  filteredGlobal = GLOBAL_DATA.filter(d =>
-    (!q || d.name.toLowerCase().includes(q) || d.publisher.toLowerCase().includes(q)) &&
-    (!cat || d.category === cat) &&
-    (!yr || String(d.year) === yr)
-  );
+  var gsEl = document.getElementById('globalSearch');
+  var cfEl = document.getElementById('catFilter');
+  var yfEl = document.getElementById('yearFilter');
+  var q = gsEl ? gsEl.value.toLowerCase() : '';
+  var cat = cfEl ? cfEl.value : '';
+  var yr = yfEl ? yfEl.value : '';
+  filteredGlobal = GLOBAL_DATA.filter(function(d) {
+    return (!q || d.name.toLowerCase().indexOf(q) > -1 || d.publisher.toLowerCase().indexOf(q) > -1) &&
+      (!cat || d.category === cat) &&
+      (!yr || String(d.year) === yr);
+  });
   renderGlobalTable();
 }
 
 function filterStates() {
-  const q = document.getElementById('stateSearch')?.value.toLowerCase() ?? '';
-  const tier = document.getElementById('tierFilter')?.value ?? '';
-  filteredStates = STATE_DATA.filter(d =>
-    (!q || d.name.toLowerCase().includes(q)) &&
-    (!tier || d.tier.toLowerCase().includes(tier))
-  );
+  var ssEl = document.getElementById('stateSearch');
+  var tfEl = document.getElementById('tierFilter');
+  var q = ssEl ? ssEl.value.toLowerCase() : '';
+  var tier = tfEl ? tfEl.value : '';
+  filteredStates = STATE_DATA.filter(function(d) {
+    return (!q || d.name.toLowerCase().indexOf(q) > -1) &&
+      (!tier || d.tier.toLowerCase().indexOf(tier) > -1);
+  });
   renderStateTable();
 }
 
@@ -1826,10 +1831,12 @@ function exportCSV() {
 
 // ─── COMPARE ─────────────────────────────────────────────────
 function renderCompareRows() {
-  const a = document.getElementById('compareA')?.value ?? 'india';
-  const b = document.getElementById('compareB')?.value ?? 'china';
-  const da = COMPARE_DATA[a] ?? COMPARE_DATA.india;
-  const db = COMPARE_DATA[b] ?? COMPARE_DATA.china;
+  var aEl = document.getElementById('compareA');
+  var bEl = document.getElementById('compareB');
+  var a = (aEl && aEl.value) ? aEl.value : 'india';
+  var b = (bEl && bEl.value) ? bEl.value : 'china';
+  var da = COMPARE_DATA[a] || COMPARE_DATA.india;
+  var db = COMPARE_DATA[b] || COMPARE_DATA.china;
   const labels = { lpi:'Logistics Performance', hdi:'Human Development', cpi:'Transparency/CPI', epi:'Environment', gii:'Innovation' };
   const el = document.getElementById('compareRows');
   if (!el) return;
