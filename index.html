@@ -13,7 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
 <!-- Chart.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js'"></script>
 
 <style>
 :root {
@@ -249,6 +249,8 @@ nav {
 .card-category.governance { background: rgba(168,85,247,0.1); color: #a855f7; }
 .card-category.health { background: rgba(34,211,160,0.1); color: #22d3a0; }
 .card-category.education { background: rgba(245,158,11,0.1); color: #f59e0b; }
+.card-category.innovation { background: rgba(251,191,36,0.1); color: #fbbf24; }
+.card-category.gender { background: rgba(236,72,153,0.1); color: #ec4899; }
 .card-category.environment { background: rgba(34,197,94,0.1); color: #22c55e; }
 .card-category.human_development { background: rgba(255,122,47,0.1); color: #ff7a2f; }
 .card-category.transparency { background: rgba(239,68,68,0.1); color: #ef4444; }
@@ -737,7 +739,7 @@ td { padding: 13px 16px; font-size: 13px; }
   background: var(--bg2);
   border-top: 1px solid var(--border);
   z-index: 200;
-  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  padding: 6px 0 10px;
 }
 .mobile-nav-inner {
   display: flex; justify-content: space-around;
@@ -747,12 +749,13 @@ td { padding: 13px 16px; font-size: 13px; }
   padding: 4px 10px; border: none; background: none;
   color: var(--text3); cursor: pointer; font-family: var(--font);
   transition: color 0.15s; font-size: 10px; font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
 }
-.mobile-nav-btn .icon { font-size: 18px; }
+.mobile-nav-btn .icon { font-size: 20px; line-height: 1; }
 .mobile-nav-btn.active { color: var(--accent); }
 @media (max-width: 900px) {
   .mobile-nav { display: block; }
-  .main { padding-bottom: 80px; }
+  .main { padding-bottom: 85px; }
 }
 </style>
 </head>
@@ -1384,9 +1387,15 @@ function showPage(id) {
   currentPage = id;
   
   // Init charts lazily
-  if (id === 'home' && !chartsInit.home) { initHomeCharts(); chartsInit.home = true; }
-  if (id === 'statedetail' && !chartsInit.statedetail) { initStateCharts(); chartsInit.statedetail = true; }
-  if (id === 'compare' && !chartsInit.compare) { initCompareChart(); chartsInit.compare = true; }
+  if (id === 'home' && !chartsInit.home) {
+    setTimeout(() => { try { initHomeCharts(); chartsInit.home = true; } catch(e){} }, 100);
+  }
+  if (id === 'statedetail' && !chartsInit.statedetail) {
+    setTimeout(() => { try { initStateCharts(); chartsInit.statedetail = true; } catch(e){} }, 100);
+  }
+  if (id === 'compare' && !chartsInit.compare) {
+    setTimeout(() => { try { initCompareChart(); chartsInit.compare = true; } catch(e){} }, 100);
+  }
   if (id === 'state') renderStateLegend();
   if (id === 'admin') renderAdmin();
   if (id === 'sources') renderSources();
@@ -1563,9 +1572,11 @@ function openIndexDetail(slug) {
   chartsInit.detail = false;
   showPage('detail');
   setTimeout(() => {
-    initDetailChart(index, detail);
-    chartsInit.detail = true;
-  }, 50);
+    try {
+      initDetailChart(index, detail);
+      chartsInit.detail = true;
+    } catch(e) { console.warn('Detail chart error:', e); }
+  }, 150);
 }
 
 // ─── RENDER HOME CARDS ────────────────────────────────────────
@@ -1963,31 +1974,19 @@ function initCompareChart() {
 
 function chartOpts(yLabel, C, reverseY = false) {
   return {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: C.text, font: { size: 11 } } } },
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 400 },
+    plugins: {
+      legend: { labels: { color: C.text, font: { size: 11 }, boxWidth: 12 } }
+    },
     scales: {
-      x: { ticks: { color: C.text, font: { size: 11 } }, grid: { color: C.grid } },
-      y: { ticks: { color: C.text, font: { size: 11 } }, grid: { color: C.grid }, title: { display: true, text: yLabel, color: C.text, font: { size: 11 } }, reverse: reverseY },
-    }
-  };
-}
-
-// ─── INIT ─────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  renderHomeCards();
-  renderGlobalTable();
-  renderStateTable();
-  initHomeCharts();
-  chartsInit.home = true;
-
-  // SVG map click
-  document.querySelectorAll('#stateGroup rect, #stateGroup circle').forEach(el => {
-    el.style.cursor = 'pointer';
-    el.addEventListener('click', () => showPage('statedetail'));
-    el.addEventListener('mouseenter', function() { this.style.opacity = '0.8'; });
-    el.addEventListener('mouseleave', function() { this.style.opacity = '1'; });
-  });
-});
-</script>
-</body>
-</html>
+      x: {
+        ticks: { color: C.text, font: { size: 10 }, maxRotation: 45 },
+        grid: { color: C.grid }
+      },
+      y: {
+        ticks: { color: C.text, font: { size: 10 } },
+        grid: { color: C.grid },
+        title: { display: true, text: yLabel, color: C.text, font: { size: 10 } },
+        reverse: revers
