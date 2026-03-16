@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>India Index Dashboard — Rankings, Data & Methodology</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+/* ── Variables ───────────────────────────────────── */
+:root {
+  --bg:#0d0f14; --bg2:#13161e; --bg3:#1a1e28; --bg4:#21263a;
+  --border:#2a2f42; --text:#e8eaf0; --text2:#9ba3bc; --text3:#6b7494;
+  --accent:#ff7a2f; --accent2:#22d3a0; --accent3:#4b9fff;
+  --success:#22d3a0; --danger:#ff4d6a; --warn:#f59e0b;
+  --font:'Segoe UI',system-ui,sans-serif; --mono:'Consolas',monospace;
+  --radius:12px; --shadow:0 4px 24px rgba(0,0,0,0.4);
+}
+[data-theme="light"] {
+  --bg:#f4f6fb; --bg2:#ffffff; --bg3:#eef0f7; --bg4:#e4e8f5;
+  --border:#d0d5e8; --text:#1a1e2e; --text2:#4a5068; --text3:#8890a8;
+  --shadow:0 4px 24px rgba(0,0,0,0.08);
+}
+/* ── Reset ───────────────────────────────────────── */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body { font-family:var(--font); background:var(--bg); color:var(--text); font-size:14px; line-height:1.6; -webkit-text-size-adjust:100%; }
+a { color:inherit; text-decoration:none; }
+button { cursor:pointer; font-family:var(--font); }
+/* ── Layout ──────────────────────────────────────── */
+.app { display:flex; flex-direction:column; min-height:100vh; }
+.topnav { position:sticky; top:0; z-index:100; background:var(--bg); border-bottom:1px solid var(--border); padding:0 20px; }
+.topnav-inner { display:flex; align-items:center; gap:12px; height:52px; max-width:1400px; margin:0 auto; }
+.logo { display:flex; align-items:center; gap:8px; font-weight:700; font-size:16px; color:var(--text); }
+.logo-mark { width:30px; height:30px; background:linear-gradient(135deg,var(--accent),var(--warn)); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.nav-links { display:flex; gap:4px; margin-left:16px; }
+.nav-btn { padding:5px 12px; border:none; background:none; color:var(--text2); font-size:13px; font-weight:500; border-radius:7px; transition:all .15s; }
+.nav-btn:hover { color:var(--text); background:var(--bg3); }
+.nav-btn.active { color:var(--accent); background:rgba(255,122,47,.1); }
+.nav-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
+.pill { font-size:11px; background:var(--bg3); border:1px solid var(--border); color:var(--text2); padding:3px 10px; border-radius:20px; }
+.theme-btn { background:none; border:none; font-size:18px; padding:4px 8px; }
+.layout { display:flex; flex:1; max-width:1400px; margin:0 auto; width:100%; }
+.sidebar { width:200px; flex-shrink:0; padding:20px 0; border-right:1px solid var(--border); }
+.sb-section { margin-bottom:20px; padding:0 12px; }
+.sb-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text3); margin-bottom:6px; padding:0 8px; }
+.sb-btn { display:flex; align-items:center; gap:8px; width:100%; padding:7px 8px; border:none; background:none; color:var(--text2); font-size:12px; font-weight:500; border-radius:8px; text-align:left; transition:all .15s; }
+.sb-btn:hover { color:var(--text); background:var(--bg3); }
+.sb-btn.active { color:var(--accent); background:rgba(255,122,47,.08); }
+.sb-icon { font-size:14px; width:18px; text-align:center; flex-shrink:0; }
+.main { flex:1; min-width:0; padding:24px 28px; padding-bottom:20px; }
+/* ── Pages ───────────────────────────────────────── */
+.page { display:none; }
+.page.active { display:block; }
+/* ── Hero ────────────────────────────────────────── */
+.hero { background:linear-gradient(135deg,var(--bg2) 0%,var(--bg3) 100%); border:1px solid var(--border); border-radius:var(--radius); padding:28px 32px; margin-bottom:24px; }
+.hero-badge { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); background:rgba(255,122,47,.12); border:1px solid rgba(255,122,47,.25); border-radius:20px; padding:4px 12px; margin-bottom:14px; }
+.hero h1 { font-size:26px; font-weight:800; line-height:1.2; margin-bottom:8px; }
+.hero h1 span { color:var(--accent); }
+.hero p { color:var(--text2); font-size:14px; margin-bottom:20px; max-width:560px; }
+.hero-stats { display:flex; gap:28px; flex-wrap:wrap; }
+.hero-stat-num { font-size:28px; font-weight:800; color:var(--accent); }
+.hero-stat-label { font-size:11px; color:var(--text3); }
+/* ── Section header ──────────────────────────────── */
+.sec-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
+.sec-title { font-size:15px; font-weight:700; }
+.sec-sub { font-size:12px; color:var(--text2); margin-top:2px; }
+/* ── Cards ───────────────────────────────────────── */
+.cards-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+.card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:16px; cursor:pointer; transition:all .18s; }
+.card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:var(--shadow); }
+.card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+.cat-tag { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; padding:3px 8px; border-radius:5px; }
+.cat-economy { background:rgba(34,211,160,.12); color:var(--accent2); }
+.cat-governance { background:rgba(75,159,255,.12); color:var(--accent3); }
+.cat-health { background:rgba(255,77,106,.12); color:#ff4d6a; }
+.cat-environment { background:rgba(34,211,160,.1); color:#4ade80; }
+.cat-human_development { background:rgba(245,158,11,.12); color:var(--warn); }
+.cat-transparency { background:rgba(167,139,250,.12); color:#a78bfa; }
+.cat-education { background:rgba(56,189,248,.12); color:#38bdf8; }
+.card-rank-num { font-size:26px; font-weight:800; color:var(--accent); }
+.card-rank-of { font-size:10px; color:var(--text3); }
+.card-name { font-size:13px; font-weight:600; margin-bottom:3px; }
+.card-pub { font-size:11px; color:var(--text3); margin-bottom:10px; }
+.card-foot { display:flex; justify-content:space-between; align-items:center; }
+.chg { font-size:12px; font-weight:700; }
+.chg.up { color:var(--success); }
+.chg.dn { color:var(--danger); }
+.chg.flat { color:var(--text3); }
+/* ── Charts ──────────────────────────────────────── */
+.chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+.chart-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:18px; }
+.chart-title { font-size:13px; font-weight:700; margin-bottom:3px; }
+.chart-meta { font-size:11px; color:var(--text3); margin-bottom:12px; }
+.chart-wrap { position:relative; height:200px; }
+/* ── Table ───────────────────────────────────────── */
+.tbl-wrap { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:24px; }
+.tbl-bar { display:flex; gap:8px; padding:12px 16px; border-bottom:1px solid var(--border); flex-wrap:wrap; align-items:center; }
+.search-in { background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:7px 12px; border-radius:8px; font-size:13px; flex:1; min-width:120px; outline:none; }
+.search-in:focus { border-color:var(--accent); }
+.filter-sel { background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:7px 10px; border-radius:8px; font-size:12px; outline:none; }
+.exp-btn { background:var(--bg3); border:1px solid var(--border); color:var(--text2); padding:7px 12px; border-radius:8px; font-size:12px; font-weight:600; white-space:nowrap; }
+.exp-btn:hover { color:var(--text); }
+table { width:100%; border-collapse:collapse; min-width:520px; }
+.tbl-scroll { overflow-x:auto; }
+thead th { padding:10px 14px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text3); background:var(--bg3); text-align:left; cursor:pointer; white-space:nowrap; user-select:none; }
+thead th:hover { color:var(--text); }
+tbody tr { border-bottom:1px solid var(--border); cursor:pointer; transition:background .12s; }
+tbody tr:hover { background:var(--bg3); }
+tbody tr:last-child { border-bottom:none; }
+td { padding:11px 14px; font-size:13px; }
+.td-rank { font-size:16px; font-weight:800; color:var(--accent); }
+.conf-dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:5px; }
+.conf-dot.high { background:var(--success); }
+.conf-dot.medium { background:var(--warn); }
+.conf-dot.low { background:var(--danger); }
+.src-badge { display:inline-block; font-size:10px; font-weight:600; padding:2px 7px; border-radius:5px; }
+.src-api { background:rgba(34,211,160,.12); color:var(--accent2); }
+.src-csv { background:rgba(75,159,255,.12); color:var(--accent3); }
+.src-pdf { background:rgba(245,158,11,.12); color:var(--warn); }
+/* ── Detail page ─────────────────────────────────── */
+.back-btn { background:none; border:1px solid var(--border); color:var(--text2); padding:7px 14px; border-radius:8px; font-size:12px; margin-bottom:18px; }
+.back-btn:hover { color:var(--text); border-color:var(--text2); }
+.detail-head { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:24px; margin-bottom:20px; }
+.detail-row { display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap; }
+.detail-rank-box { background:var(--bg3); border-radius:10px; padding:16px 22px; text-align:center; min-width:100px; flex-shrink:0; }
+.detail-rank-big { font-size:48px; font-weight:900; color:var(--accent); line-height:1; }
+.detail-rank-of { font-size:11px; color:var(--text3); margin-top:2px; }
+.detail-rank-chg { font-size:12px; font-weight:700; margin-top:6px; }
+.detail-info { flex:1; min-width:200px; }
+.detail-name { font-size:20px; font-weight:800; margin-bottom:4px; }
+.detail-pub { font-size:12px; color:var(--text2); margin-bottom:10px; }
+.detail-tags { display:flex; gap:6px; flex-wrap:wrap; }
+.detail-tag { font-size:11px; padding:3px 9px; border-radius:5px; background:rgba(75,159,255,.1); color:var(--accent3); }
+.method-box { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-top:16px; }
+.method-box h3 { font-size:13px; font-weight:700; margin-bottom:10px; }
+.method-box p { font-size:13px; color:var(--text2); line-height:1.7; }
+.warn-box { background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.25); border-radius:8px; padding:10px 14px; font-size:12px; color:var(--warn); margin-top:12px; }
+/* ── State page ──────────────────────────────────── */
+.map-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+.map-card { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:18px; }
+.map-card svg { width:100%; height:auto; max-height:320px; }
+/* ── Compare ─────────────────────────────────────── */
+.compare-sel-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+.compare-label { font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text3); margin-bottom:6px; }
+.compare-select { width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:9px 12px; border-radius:8px; font-size:13px; outline:none; }
+.compare-row-head { display:grid; grid-template-columns:2fr 1fr 1fr 80px; gap:8px; padding:8px 14px; font-size:10px; font-weight:700; text-transform:uppercase; color:var(--text3); border-bottom:1px solid var(--border); }
+.compare-row-item { display:grid; grid-template-columns:2fr 1fr 1fr 80px; gap:8px; padding:11px 14px; border-bottom:1px solid var(--border); font-size:13px; }
+.compare-row-item:last-child { border-bottom:none; }
+.better-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:5px; }
+.better-a { background:rgba(34,211,160,.12); color:var(--success); }
+.better-b { background:rgba(255,77,106,.12); color:var(--danger); }
+.better-eq { background:var(--bg3); color:var(--text3); }
+/* ── Admin ───────────────────────────────────────── */
+.admin-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+.admin-stat { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:16px; }
+.admin-stat-val { font-size:28px; font-weight:800; color:var(--accent); }
+.admin-stat-lbl { font-size:11px; color:var(--text3); margin-top:4px; }
+.job-list { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.job-head { display:grid; grid-template-columns:2fr 80px 1fr 80px 80px; gap:8px; padding:10px 14px; font-size:10px; font-weight:700; text-transform:uppercase; color:var(--text3); background:var(--bg3); border-bottom:1px solid var(--border); }
+.job-row { display:grid; grid-template-columns:2fr 80px 1fr 80px 80px; gap:8px; padding:12px 14px; border-bottom:1px solid var(--border); font-size:12px; align-items:center; }
+.job-row:last-child { border-bottom:none; }
+.status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; }
+.status-ok { background:var(--success); }
+.status-err { background:var(--danger); }
+.status-pend { background:var(--warn); }
+.trig-btn { background:var(--bg3); border:1px solid var(--border); color:var(--text2); padding:4px 10px; border-radius:6px; font-size:11px; }
+.trig-btn:hover { color:var(--accent); border-color:var(--accent); }
+/* ── Sources ─────────────────────────────────────── */
+.source-panel { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:18px; margin-bottom:14px; }
+.source-head { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.source-icon { font-size:24px; }
+.source-name { font-size:14px; font-weight:700; }
+.source-type-lbl { font-size:11px; color:var(--text3); }
+.source-fields { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.sf-label { font-size:10px; font-weight:700; text-transform:uppercase; color:var(--text3); margin-bottom:3px; }
+.sf-val { font-size:12px; color:var(--text2); }
+.sf-link { color:var(--accent3); }
+/* ── Mobile nav ──────────────────────────────────── */
+.mob-nav { display:none; position:fixed; bottom:0; left:0; right:0; background:var(--bg2); border-top:1px solid var(--border); z-index:200; }
+.mob-nav-inner { display:flex; }
+.mob-btn { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px 10px; border:none; background:none; color:var(--text3); font-size:10px; font-weight:500; -webkit-tap-highlight-color:transparent; }
+.mob-icon { font-size:20px; line-height:1.2; }
+.mob-btn.active { color:var(--accent); }
+/* ── Utility ─────────────────────────────────────── */
+.year-tag { font-size:10px; color:var(--text3); }
+.freshness { font-size:10px; padding:2px 7px; border-radius:5px; background:rgba(34,211,160,.1); color:var(--accent2); }
+/* ── Mobile breakpoints ──────────────────────────── */
+@media (max-width:900px) {
+  .nav-links { display:none; }
+  .sidebar { display:none; }
+  .main { padding:14px 12px 90px 12px; }
+  .mob-nav { display:block; }
+  .cards-grid { grid-template-columns:1fr; }
+  .chart-grid { grid-template-columns:1fr; }
+  .admin-stats { grid-template-columns:1fr 1fr; }
+  .map-grid { grid-template-columns:1fr; }
+  .compare-sel-row { grid-template-columns:1fr; }
+  .job-head .j-sched, .job-row .j-sched,
+  .job-head .j-tier, .job-row .j-tier { display:none; }
+  .source-fields { grid-template-columns:1fr 1fr; }
+  .hero { padding:18px 16px; }
+  .hero h1 { font-size:20px; }
+  .detail-rank-big { font-size:36px; }
+  .compare-row-head, .compare-row-item { grid-template-columns:2fr 1fr 1fr; }
+  .compare-row-head .better-col, .compare-row-item .better-col { display:none; }
+}
+@media (max-width:420px) {
+  .hero-stats { gap:16px; }
+  .hero-stat-num { font-size:22px; }
+  .admin-stats { grid-template-columns:1fr 1fr; }
+  .source-fields { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="topnav-inner">
+    <div class="logo" onclick="showPage('home')" style="cursor:pointer">
+      <div class="logo-mark">&#127470;&#127475;</div>
+      <span>IndiaIndex</span>
+    </div>
+    <div class="nav-links">
+      <button class="nav-btn active" id="nav-home" onclick="showPage('home')">Home</button>
+      <button class="nav-btn" id="nav-global" onclick="showPage('global')">Global Indexes</button>
+      <button class="nav-btn" id="nav-state" onclick="showPage('state')">State Indexes</button>
+      <button class="nav-btn" id="nav-compare" onclick="showPage('compare')">Compare</button>
+      <button class="nav-btn" id="nav-sources" onclick="showPage('sources')">Sources</button>
+      <button class="nav-btn" id="nav-admin" onclick="showPage('admin')">Admin</button>
+    </div>
+    <div class="nav-right">
+      <span class="pill">Updated: Mar 2026</span>
+      <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">&#127769;</button>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-section">
+    <div class="sb-label">Navigation</div>
+    <button class="sb-btn active" id="sb-home" onclick="showPage('home')"><span class="sb-icon">&#127968;</span>Overview</button>
+    <button class="sb-btn" id="sb-global" onclick="showPage('global')"><span class="sb-icon">&#127760;</span>Global Indexes</button>
+    <button class="sb-btn" id="sb-state" onclick="showPage('state')"><span class="sb-icon">&#128506;</span>State Indexes</button>
+    <button class="sb-btn" id="sb-detail" onclick="showPage('detail')"><span class="sb-icon">&#128202;</span>Index Detail</button>
+    <button class="sb-btn" id="sb-statedetail" onclick="showPage('statedetail')"><span class="sb-icon">&#128205;</span>State Detail</button>
+    <button class="sb-btn" id="sb-compare" onclick="showPage('compare')"><span class="sb-icon">&#9878;</span>Compare</button>
+    <button class="sb-btn" id="sb-sources" onclick="showPage('sources')"><span class="sb-icon">&#128203;</span>Sources</button>
+    <button class="sb-btn" id="sb-admin" onclick="showPage('admin')"><span class="sb-icon">&#9881;</span>Admin</button>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">Categories</div>
+    <button class="sb-btn" onclick="filterByCat('economy')"><span class="sb-icon">&#128185;</span>Economy</button>
+    <button class="sb-btn" onclick="filterByCat('governance')"><span class="sb-icon">&#9878;</span>Governance</button>
+    <button class="sb-btn" onclick="filterByCat('health')"><span class="sb-icon">&#10084;</span>Health</button>
+    <button class="sb-btn" onclick="filterByCat('education')"><span class="sb-icon">&#128218;</span>Education</button>
+    <button class="sb-btn" onclick="filterByCat('environment')"><span class="sb-icon">&#127807;</span>Environment</button>
+    <button class="sb-btn" onclick="filterByCat('human_development')"><span class="sb-icon">&#128101;</span>Human Dev</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ══ HOME ══════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-badge">&#128308; Live Dashboard</div>
+    <h1>India's Rankings Across<br><span>Major Global &amp; National Indexes</span></h1>
+    <p>Transparent, source-cited data from official APIs, open datasets, and published reports. Every data point traces back to its origin.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-num">42</div><div class="hero-stat-label">Indexes Tracked</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">28+5</div><div class="hero-stat-label">States + UTs</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">18</div><div class="hero-stat-label">Years of Data</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">96%</div><div class="hero-stat-label">High Confidence</div></div>
+    </div>
+  </div>
+  <div class="sec-head">
+    <div><div class="sec-title">Recent Rank Changes</div><div class="sec-sub">India's biggest movements in the last 12 months</div></div>
+    <button class="exp-btn" onclick="exportCSV()">&#8595; Export CSV</button>
+  </div>
+  <div class="cards-grid" id="home-cards"></div>
+  <div class="sec-head" style="margin-top:8px"><div><div class="sec-title">Historical Trends</div></div></div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">LPI Rank &#8212; Logistics Performance Index</div>
+      <div class="chart-meta">World Bank · Official API · 2010–2023</div>
+      <div class="chart-wrap"><canvas id="chartLPI"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">HDI Score &#8212; Human Development Index</div>
+      <div class="chart-meta">UNDP · Official API · 2010–2025</div>
+      <div class="chart-wrap"><canvas id="chartHDI"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GLOBAL ═════════════════════════════════════ -->
+<div class="page" id="page-global">
+  <div class="sec-head">
+    <div><div class="sec-title">Global Indexes</div><div class="sec-sub">India's rank among world nations in 25+ international benchmarks</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <div class="tbl-bar">
+      <input class="search-in" placeholder="Search indexes..." id="globalSearch" oninput="filterGlobal()">
+      <select class="filter-sel" id="catFilter" onchange="filterGlobal()">
+        <option value="">All Categories</option>
+        <option value="economy">Economy</option>
+        <option value="governance">Governance</option>
+        <option value="health">Health</option>
+        <option value="environment">Environment</option>
+        <option value="human_development">Human Dev</option>
+        <option value="transparency">Transparency</option>
+      </select>
+      <select class="filter-sel" id="yearFilter" onchange="filterGlobal()">
+        <option value="">All Years</option>
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+        <option value="2022">2022</option>
+      </select>
+      <button class="exp-btn" onclick="exportCSV()">&#8595; Export</button>
+    </div>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr>
+          <th onclick="sortTable('name')">Index Name &#8597;</th>
+          <th onclick="sortTable('rank')">Rank &#8597;</th>
+          <th onclick="sortTable('total')">Out Of &#8597;</th>
+          <th onclick="sortTable('change')">Change &#8597;</th>
+          <th onclick="sortTable('score')">Score &#8597;</th>
+          <th>Confidence</th><th>Source</th>
+          <th onclick="sortTable('year')">Year &#8597;</th>
+        </tr></thead>
+        <tbody id="global-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STATE ══════════════════════════════════════ -->
+<div class="page" id="page-state">
+  <div class="sec-head">
+    <div><div class="sec-title">State &amp; UT Rankings</div><div class="sec-sub">How Indian states perform across national indexes</div></div>
+  </div>
+  <div class="map-grid">
+    <div class="map-card">
+      <div class="chart-title">SDG India Index 2023–24 &#8212; State Rankings</div>
+      <div class="chart-meta">NITI Aayog · Official Data · Score 0–100</div>
+      <svg viewBox="0 0 400 440" style="background:var(--bg3);border-radius:8px;padding:8px">
+        <!-- Simplified India state map using colored rectangles -->
+        <text x="200" y="30" text-anchor="middle" font-size="11" fill="#6b7494">India SDG Rankings by State (2023-24)</text>
+        <!-- Top states legend -->
+        <rect x="20" y="50" width="14" height="14" fill="#22d3a0" rx="2"/>
+        <text x="38" y="62" font-size="10" fill="#9ba3bc">Top Performers (75+)</text>
+        <rect x="20" y="70" width="14" height="14" fill="#4b9fff" rx="2"/>
+        <text x="38" y="82" font-size="10" fill="#9ba3bc">Aspirants (65–75)</text>
+        <rect x="20" y="90" width="14" height="14" fill="#f59e0b" rx="2"/>
+        <text x="38" y="102" font-size="10" fill="#9ba3bc">Performers (55–65)</text>
+        <rect x="20" y="110" width="14" height="14" fill="#ff4d6a" rx="2"/>
+        <text x="38" y="122" font-size="10" fill="#9ba3bc">Needs Attention (&lt;55)</text>
+        <!-- State blocks -->
+        <g font-size="9" text-anchor="middle">
+          <!-- Row 1 -->
+          <rect x="120" y="145" width="60" height="36" fill="#4b9fff" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="150" y="160" fill="white" font-weight="bold">HP</text><text x="150" y="173" fill="white">72</text>
+          <rect x="190" y="145" width="60" height="36" fill="#f59e0b" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="220" y="160" fill="white" font-weight="bold">UK</text><text x="220" y="173" fill="white">61</text>
+          <rect x="260" y="145" width="60" height="36" fill="#4b9fff" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="290" y="160" fill="white" font-weight="bold">J&amp;K</text><text x="290" y="173" fill="white">67</text>
+          <!-- Row 2 -->
+          <rect x="60" y="192" width="55" height="36" fill="#f59e0b" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="87" y="207" fill="white" font-weight="bold">PB</text><text x="87" y="220" fill="white">61</text>
+          <rect x="125" y="192" width="55" height="36" fill="#f59e0b" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="152" y="207" fill="white" font-weight="bold">HR</text><text x="152" y="220" fill="white">63</text>
+          <rect x="190" y="192" width="55" height="36" fill="#4b9fff" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="217" y="207" fill="white" font-weight="bold">DL</text><text x="217" y="220" fill="white">68</text>
+          <rect x="255" y="192" width="55" height="36" fill="#ff4d6a" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="282" y="207" fill="white" font-weight="bold">UP</text><text x="282" y="220" fill="white">52</text>
+          <!-- Row 3 -->
+          <rect x="60" y="239" width="55" height="36" fill="#f59e0b" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="87" y="254" fill="white" font-weight="bold">RJ</text><text x="87" y="267" fill="white">60</text>
+          <rect x="125" y="239" width="55" height="36" fill="#f59e0b" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="152" y="254" fill="white" font-weight="bold">MP</text><text x="152" y="267" fill="white">57</text>
+          <rect x="190" y="239" width="55" height="36" fill="#f59e0b" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="217" y="254" fill="white" font-weight="bold">BR</text><text x="217" y="267" fill="white">53</text>
+          <rect x="255" y="239" width="55" height="36" fill="#4b9fff" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="282" y="254" fill="white" font-weight="bold">WB</text><text x="282" y="267" fill="white">66</text>
+          <!-- Row 4 -->
+          <rect x="60" y="286" width="55" height="36" fill="#4b9fff" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="87" y="301" fill="white" font-weight="bold">GJ</text><text x="87" y="314" fill="white">67</text>
+          <rect x="125" y="286" width="55" height="36" fill="#4b9fff" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="152" y="301" fill="white" font-weight="bold">MH</text><text x="152" y="314" fill="white">65</text>
+          <rect x="190" y="286" width="55" height="36" fill="#4b9fff" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="217" y="301" fill="white" font-weight="bold">AP</text><text x="217" y="314" fill="white">66</text>
+          <rect x="255" y="286" width="55" height="36" fill="#4b9fff" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="282" y="301" fill="white" font-weight="bold">TN</text><text x="282" y="314" fill="white">72</text>
+          <!-- Row 5 -->
+          <rect x="125" y="333" width="55" height="36" fill="#f59e0b" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="152" y="348" fill="white" font-weight="bold">KA</text><text x="152" y="361" fill="white">62</text>
+          <rect x="190" y="333" width="55" height="36" fill="#22d3a0" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="217" y="348" fill="white" font-weight="bold">KL</text><text x="217" y="361" fill="white">82</text>
+          <rect x="255" y="333" width="55" height="36" fill="#22d3a0" rx="3" onclick="showPage('statedetail')" style="cursor:pointer"/>
+          <text x="282" y="348" fill="white" font-weight="bold">GA</text><text x="282" y="361" fill="white">77</text>
+        </g>
+        <text x="200" y="420" text-anchor="middle" font-size="10" fill="#6b7494">Click any state for details · NITI Aayog SDG Index 2023-24</text>
+      </svg>
+    </div>
+    <div class="map-card">
+      <div class="sec-head" style="margin-bottom:12px">
+        <div><div class="chart-title">Top &amp; Bottom States</div></div>
+        <button class="exp-btn" onclick="exportCSV()">&#8595; Export</button>
+      </div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>Rank</th><th>State</th><th>Score</th><th>Change</th></tr></thead>
+          <tbody id="state-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DETAIL ════════════════════════════════════ -->
+<div class="page" id="page-detail">
+  <button class="back-btn" onclick="showPage('global')">&#8592; Back to Global Indexes</button>
+  <div class="detail-head" id="detail-head">
+    <div class="detail-row">
+      <div class="detail-rank-box">
+        <div class="detail-rank-big" id="d-rank">—</div>
+        <div class="detail-rank-of" id="d-of">of — countries</div>
+        <div class="detail-rank-chg" id="d-chg"></div>
+      </div>
+      <div class="detail-info">
+        <div class="detail-name" id="d-name">—</div>
+        <div class="detail-pub" id="d-pub"></div>
+        <div class="detail-tags" id="d-tags"></div>
+      </div>
+    </div>
+  </div>
+  <div class="chart-grid" style="grid-template-columns:1fr">
+    <div class="chart-card">
+      <div class="chart-title" id="d-chart-title">Historical Trend</div>
+      <div class="chart-meta" id="d-chart-meta"></div>
+      <div class="chart-wrap"><canvas id="chartDetail"></canvas></div>
+    </div>
+  </div>
+  <div class="method-box">
+    <h3>&#128208; Methodology Notes</h3>
+    <p id="d-method"></p>
+    <div class="warn-box" id="d-warn" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ══ STATE DETAIL ═══════════════════════════════ -->
+<div class="page" id="page-statedetail">
+  <button class="back-btn" onclick="showPage('state')">&#8592; Back to State Indexes</button>
+  <div class="detail-head">
+    <div class="detail-row">
+      <div class="detail-rank-box">
+        <div class="detail-rank-big" style="color:var(--accent2)">1</div>
+        <div class="detail-rank-of">SDG Index</div>
+        <div class="detail-rank-chg" style="color:var(--success)">&#9650; Consistent #1</div>
+      </div>
+      <div class="detail-info">
+        <div class="detail-name">&#127796; Kerala</div>
+        <div class="detail-pub">South India · State · SDG Score: 82/100</div>
+        <div class="detail-tags">
+          <span class="detail-tag">SDG Leader</span>
+          <span class="detail-tag">High HDI</span>
+          <span class="detail-tag">Education</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">Kerala SDG Score &#8212; 2019 to 2024</div>
+      <div class="chart-meta">NITI Aayog SDG India Index</div>
+      <div class="chart-wrap"><canvas id="chartStateKL"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Kerala Across Indexes</div>
+      <div class="chart-meta">Relative ranking compared to other states</div>
+      <div class="chart-wrap"><canvas id="chartStateMulti"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ COMPARE ════════════════════════════════════ -->
+<div class="page" id="page-compare">
+  <div class="sec-head">
+    <div><div class="sec-title">Compare Entities</div><div class="sec-sub">Compare India against countries, or states against each other</div></div>
+  </div>
+  <div class="compare-sel-row">
+    <div>
+      <div class="compare-label">Entity A</div>
+      <select class="compare-select" id="compareA" onchange="updateCompare()">
+        <option value="india">&#127470;&#127475; India</option>
+        <option value="china">&#127464;&#127475; China</option>
+        <option value="brazil">&#127463;&#127479; Brazil</option>
+        <option value="indonesia">&#127470;&#127465; Indonesia</option>
+      </select>
+    </div>
+    <div>
+      <div class="compare-label">Entity B</div>
+      <select class="compare-select" id="compareB" onchange="updateCompare()">
+        <option value="china">&#127464;&#127475; China</option>
+        <option value="india">&#127470;&#127475; India</option>
+        <option value="brazil">&#127463;&#127479; Brazil</option>
+        <option value="indonesia">&#127470;&#127465; Indonesia</option>
+      </select>
+    </div>
+  </div>
+  <div class="chart-card" style="margin-bottom:16px">
+    <div class="chart-title">Comparison Chart &#8212; All Indexes (Percentile)</div>
+    <div class="chart-meta">Higher = better ranking percentile</div>
+    <div class="chart-wrap"><canvas id="chartCompare"></canvas></div>
+  </div>
+  <div class="tbl-wrap">
+    <div class="compare-row-head">
+      <div>Index</div><div id="cmp-head-a">India</div><div id="cmp-head-b">China</div><div class="better-col">Better</div>
+    </div>
+    <div id="compare-rows"></div>
+  </div>
+</div>
+
+<!-- ══ SOURCES ════════════════════════════════════ -->
+<div class="page" id="page-sources">
+  <div class="sec-head"><div><div class="sec-title">Sources &amp; Methodology</div><div class="sec-sub">Every data point traces to an official, auditable source</div></div></div>
+  <div class="method-box" style="margin-bottom:16px">
+    <h3>&#128269; Data Authenticity Principles</h3>
+    <p>This dashboard follows a strict source-priority hierarchy. All data is tagged with a confidence level (HIGH / MEDIUM / LOW) and linked to its raw snapshot. Source tiers: (1) Official REST/JSON APIs &#8594; (2) Official CSV/XLSX &#8594; (3) Official HTML &#8594; (4) Official PDFs &#8594; (5) Trusted secondary sources.</p>
+  </div>
+  <div id="source-panels"></div>
+</div>
+
+<!-- ══ ADMIN ══════════════════════════════════════ -->
+<div class="page" id="page-admin">
+  <div class="sec-head"><div><div class="sec-title">Admin &#8212; Ingestion Monitor</div><div class="sec-sub">Monitor data ingestion jobs, trigger manual runs, view error logs</div></div></div>
+  <div class="admin-stats">
+    <div class="admin-stat"><div class="admin-stat-val">8</div><div class="admin-stat-lbl">Total Jobs</div></div>
+    <div class="admin-stat"><div class="admin-stat-val">5</div><div class="admin-stat-lbl">Last 24h Runs</div></div>
+    <div class="admin-stat"><div class="admin-stat-val">1</div><div class="admin-stat-lbl">Failed Jobs</div></div>
+    <div class="admin-stat"><div class="admin-stat-val">1,247</div><div class="admin-stat-lbl">Rows Today</div></div>
+  </div>
+  <div class="job-list" id="job-list"></div>
+</div>
+
+</main>
+</div><!-- end layout -->
+
+<!-- MOBILE NAV -->
+<nav class="mob-nav">
+  <div class="mob-nav-inner">
+    <button class="mob-btn active" id="mob-home" onclick="showPage('home')"><span class="mob-icon">&#127968;</span>Home</button>
+    <button class="mob-btn" id="mob-global" onclick="showPage('global')"><span class="mob-icon">&#127760;</span>Global</button>
+    <button class="mob-btn" id="mob-state" onclick="showPage('state')"><span class="mob-icon">&#128506;</span>States</button>
+    <button class="mob-btn" id="mob-compare" onclick="showPage('compare')"><span class="mob-icon">&#9878;</span>Compare</button>
+    <button class="mob-btn" id="mob-sources" onclick="showPage('sources')"><span class="mob-icon">&#128203;</span>Sources</button>
+  </div>
+</nav>
+
+</div><!-- end app -->
+
+<script>
+/* ══════════════════════════════════════════════════
+   ALL DATA
+══════════════════════════════════════════════════ */
+var GLOBAL_DATA = [
+  {name:'Logistics Performance Index', slug:'lpi', cat:'economy', pub:'World Bank', rank:38, total:139, change:6, score:3.4, year:2023, conf:'HIGH', src:'api'},
+  {name:'Human Development Index', slug:'hdi', cat:'human_development', pub:'UNDP', rank:130, total:193, change:3, score:0.685, year:2025, conf:'HIGH', src:'api'},
+  {name:'Corruption Perceptions Index', slug:'cpi', cat:'transparency', pub:'Transparency International', rank:96, total:180, change:-3, score:38, year:2024, conf:'MEDIUM', src:'pdf'},
+  {name:'Global Hunger Index', slug:'ghi', cat:'health', pub:'Welthungerhilfe', rank:111, total:127, change:-3, score:27.3, year:2024, conf:'MEDIUM', src:'pdf'},
+  {name:'Environmental Performance Index', slug:'epi', cat:'environment', pub:'Yale/Columbia', rank:180, total:180, change:-4, score:18.9, year:2022, conf:'HIGH', src:'csv'},
+  {name:'Ease of Doing Business', slug:'eodb', cat:'economy', pub:'World Bank', rank:63, total:190, change:14, score:71.0, year:2020, conf:'HIGH', src:'api'},
+  {name:'Global Innovation Index', slug:'gii', cat:'economy', pub:'WIPO', rank:39, total:133, change:1, score:38.3, year:2024, conf:'HIGH', src:'api'},
+  {name:'Press Freedom Index', slug:'pfi', cat:'transparency', pub:'RSF', rank:159, total:180, change:2, score:31.28, year:2024, conf:'MEDIUM', src:'csv'},
+  {name:'Global Gender Gap Index', slug:'gggi', cat:'governance', pub:'World Economic Forum', rank:131, total:148, change:-4, score:0.641, year:2025, conf:'HIGH', src:'csv'},
+  {name:'Climate Change Perf. Index', slug:'ccpi', cat:'environment', pub:'Germanwatch', rank:10, total:67, change:2, score:null, year:2025, conf:'HIGH', src:'pdf'},
+  {name:'World Happiness Report', slug:'whr', cat:'human_development', pub:'UN SDSN', rank:118, total:147, change:-5, score:4.39, year:2025, conf:'HIGH', src:'api'},
+  {name:'Global Peace Index', slug:'gpi', cat:'governance', pub:'IEP', rank:115, total:163, change:1, score:2.35, year:2025, conf:'HIGH', src:'csv'},
+  {name:'IMD World Competitiveness', slug:'wci', cat:'economy', pub:'IMD', rank:39, total:67, change:1, score:null, year:2024, conf:'HIGH', src:'csv'},
+  {name:'Rule of Law Index', slug:'roli', cat:'governance', pub:'WJP', rank:79, total:142, change:3, score:0.47, year:2024, conf:'HIGH', src:'pdf'}
+];
+
+var STATE_DATA = [
+  {name:'Kerala', code:'KL', rank:1, score:82, prev:1, change:0, tier:'Large States'},
+  {name:'Himachal Pradesh', code:'HP', rank:2, score:72, prev:2, change:0, tier:'Small States'},
+  {name:'Tamil Nadu', code:'TN', rank:3, score:72, prev:3, change:0, tier:'Large States'},
+  {name:'Andhra Pradesh', code:'AP', rank:4, score:66, prev:5, change:1, tier:'Large States'},
+  {name:'Goa', code:'GA', rank:5, score:77, prev:4, change:-1, tier:'Small States'},
+  {name:'Delhi', code:'DL', rank:6, score:68, prev:6, change:0, tier:'UTs'},
+  {name:'West Bengal', code:'WB', rank:7, score:66, prev:8, change:1, tier:'Large States'},
+  {name:'Gujarat', code:'GJ', rank:8, score:67, prev:7, change:-1, tier:'Large States'},
+  {name:'Maharashtra', code:'MH', rank:9, score:65, prev:9, change:0, tier:'Large States'},
+  {name:'Haryana', code:'HR', rank:10, score:63, prev:11, change:1, tier:'Large States'},
+  {name:'Punjab', code:'PB', rank:11, score:61, prev:10, change:-1, tier:'Large States'},
+  {name:'Rajasthan', code:'RJ', rank:12, score:60, prev:13, change:1, tier:'Large States'},
+  {name:'Karnataka', code:'KA', rank:13, score:62, prev:12, change:-1, tier:'Large States'},
+  {name:'Uttarakhand', code:'UK', rank:14, score:61, prev:14, change:0, tier:'Small States'},
+  {name:'Madhya Pradesh', code:'MP', rank:15, score:57, prev:16, change:1, tier:'Large States'},
+  {name:'Bihar', code:'BR', rank:28, score:53, prev:28, change:0, tier:'Large States'},
+  {name:'Uttar Pradesh', code:'UP', rank:26, score:52, prev:27, change:1, tier:'Large States'}
+];
+
+var DETAIL_DATA = {
+  lpi:{trendL:['2010','2012','2014','2016','2018*','2020','2023'],trendD:[47,46,54,35,44,44,38],note:'Rank (lower = better)',tags:['Economy','Infrastructure'],method:'Based on a survey of ~6,000 logistics professionals globally. Measures 6 dimensions: Customs, Infrastructure, International Shipments, Logistics Quality, Tracking & Tracing, and Timeliness.',warn:'⚠ India skipped 2018 LPI survey. The 2018 rank is extrapolated from trend.'},
+  hdi:{trendL:['2010','2012','2015','2017','2019','2021','2022','2025'],trendD:[0.581,0.598,0.619,0.636,0.645,0.633,0.676,0.685],note:'HDI Score (higher = better)',tags:['Human Development'],method:'Composite index measuring three dimensions: long and healthy life, knowledge (education), and decent standard of living (GNI per capita). Published by UNDP.',warn:null},
+  cpi:{trendL:['2016','2017','2018','2019','2020','2021','2022','2023','2024'],trendD:[79,81,78,80,86,85,85,93,96],note:'Rank (lower = better)',tags:['Governance','Transparency'],method:'Aggregates data from 13 sources across expert assessments and business surveys. Scale 0-100, 0 = highly corrupt. Published annually by Transparency International.',warn:"⚠ India's score dropped from 40 (2022) to 38 (2024), reflecting a worsening trend."},
+  ghi:{trendL:['2016','2017','2018','2019','2020','2021','2022','2023','2024'],trendD:[97,100,103,102,94,101,107,111,111],note:'Rank (lower = better)',tags:['Health'],method:'Measures hunger via 4 indicators: undernourishment, child wasting, child stunting, and child mortality. Score 27.3 = Serious hunger level.',warn:'⚠ Government of India disputes GHI methodology. Rankings included for completeness with MEDIUM confidence.'},
+  gii:{trendL:['2015','2017','2019','2020','2021','2022','2023','2024'],trendD:[81,60,52,48,46,40,40,39],note:'Rank (lower = better)',tags:['Innovation'],method:'Evaluates 133 economies on innovation inputs and outputs. Published by WIPO. India has improved 42 positions since 2015.',warn:null},
+  epi:{trendL:['2014','2016','2018','2020','2022'],trendD:[155,141,177,168,180],note:'Rank (lower = better)',tags:['Environment'],method:'Ranks 180 countries across 40 indicators covering ecosystem vitality and environmental health. Published by Yale Center for Environmental Law & Policy.',warn:'⚠ India disputes EPI methodology, particularly around air quality weighting.'},
+  eodb:{trendL:['2014','2015','2016','2017','2018','2019','2020'],trendD:[142,130,130,100,77,63,63],note:'Rank (lower = better) — DISCONTINUED 2021',tags:['Economy'],method:'Measured business regulations across 10 areas. Discontinued by World Bank in September 2021. Last rank: 63rd (2020).',warn:'⚠ This index was discontinued in 2021. World Bank is developing a successor called Business Enabling Environment (BEE) index.'},
+  pfi:{trendL:['2018','2019','2020','2021','2022','2023','2024'],trendD:[138,140,142,142,150,161,159],note:'Rank (lower = better)',tags:['Transparency'],method:'Evaluates pluralism, media independence, legislative framework, transparency, infrastructure, and safety of journalists. Published by RSF.',warn:'⚠ Government of India disputes RSF methodology.'},
+  gggi:{trendL:['2018','2019','2020','2021','2022','2023','2024','2025'],trendD:[108,112,112,140,135,127,129,131],note:'Rank (lower = better)',tags:['Gender'],method:'Measures gender parity across 4 dimensions: Economic Participation, Educational Attainment, Health & Survival, and Political Empowerment. Published by WEF.',warn:'⚠ India scores particularly low in Economic Participation and Health & Survival.'},
+  ccpi:{trendL:['2020','2021','2022','2023','2024','2025'],trendD:[9,10,10,8,7,10],note:'Rank — Top 3 always vacant',tags:['Environment'],method:'Evaluates national climate policy, renewable energy, and GHG emissions. Top 3 ranks always left vacant as no country meets 1.5°C targets. Rank 10 is effectively a top performer.',warn:null},
+  whr:{trendL:['2019','2020','2021','2022','2023','2024','2025'],trendD:[140,144,139,136,126,126,118],note:'Rank (lower = better)',tags:['Human Development'],method:'Based on Gallup World Poll self-reported life evaluations. Also considers GDP per capita, social support, healthy life expectancy, freedom, generosity, and corruption.',warn:null},
+  gpi:{trendL:['2019','2020','2021','2022','2023','2024','2025'],trendD:[141,139,135,135,126,116,115],note:'Rank (lower = better)',tags:['Governance'],method:'Measures peace using 23 indicators across societal safety, ongoing conflict, and militarisation. Published by Institute for Economics & Peace.',warn:null},
+  wci:{trendL:['2020','2021','2022','2023','2024'],trendD:[43,43,37,40,39],note:'Rank (lower = better)',tags:['Economy'],method:'Ranks 67 economies based on Economic Performance, Government Efficiency, Business Efficiency, and Infrastructure. Published by IMD.',warn:null},
+  roli:{trendL:['2020','2021','2022','2023','2024'],trendD:[69,79,77,79,79],note:'Rank (lower = better)',tags:['Governance'],method:'Measures rule of law across 8 dimensions including constraints on government, absence of corruption, and fundamental rights. Published by WJP.',warn:null}
+};
+
+var COMPARE_DATA = {
+  india:{lpi:72.7,hdi:32.6,cpi:46.7,epi:0,gii:70.7},
+  china:{lpi:82.8,hdi:72.5,cpi:44.4,epi:20,gii:74.4},
+  brazil:{lpi:64.0,hdi:51.8,cpi:18.3,epi:51.7,gii:40.9},
+  indonesia:{lpi:60.1,hdi:39.4,cpi:28.3,epi:33.3,gii:46.2}
+};
+
+var SOURCES = [
+  {name:'World Bank LPI API',icon:'&#127760;',tier:1,type:'Official REST API',url:'https://lpi.worldbank.org/api',indexes:'LPI, EoDB',conf:'HIGH',tos:'Creative Commons Attribution 4.0',robots:true,fetched:'Mar 2026'},
+  {name:'UNDP HDR Data',icon:'&#127981;',tier:1,type:'Official REST API',url:'https://hdr.undp.org/data-center',indexes:'HDI, HCI',conf:'HIGH',tos:'CC BY 3.0 IGO',robots:true,fetched:'Mar 2026'},
+  {name:'WIPO GII Data',icon:'&#128161;',tier:1,type:'Official REST API',url:'https://www.wipo.int/global_innovation_index',indexes:'GII',conf:'HIGH',tos:'CC BY 4.0',robots:true,fetched:'Sep 2024'},
+  {name:'Transparency International CPI',icon:'&#128269;',tier:2,type:'Official PDF',url:'https://www.transparency.org/cpi',indexes:'CPI',conf:'MEDIUM',tos:'CC BY-ND 4.0',robots:true,fetched:'Feb 2025'},
+  {name:'GHI Report',icon:'&#127805;',tier:2,type:'Official PDF',url:'https://www.globalhungerindex.org',indexes:'GHI',conf:'MEDIUM',tos:'CC BY-NC-SA 4.0',robots:true,fetched:'Oct 2024'},
+  {name:'Yale EPI CSV',icon:'&#127807;',tier:2,type:'Official CSV',url:'https://epi.yale.edu/downloads',indexes:'EPI',conf:'HIGH',tos:'CC BY 4.0',robots:true,fetched:'2022'},
+  {name:'RSF Press Freedom',icon:'&#128240;',tier:2,type:'Official CSV',url:'https://rsf.org/en/index',indexes:'PFI',conf:'MEDIUM',tos:'CC BY-NC-SA',robots:true,fetched:'May 2024'}
+];
+
+var JOBS = [
+  {name:'World Bank LPI',tier:1,schedule:'Daily 00:30 IST',lastRun:'2026-03-16 00:31',status:'ok',rows:139},
+  {name:'UNDP HDI',tier:1,schedule:'Daily 00:30 IST',lastRun:'2026-03-16 00:32',status:'ok',rows:193},
+  {name:'WIPO GII',tier:1,schedule:'Weekly Mon',lastRun:'2026-03-11 02:00',status:'ok',rows:133},
+  {name:'Transparency CPI',tier:2,schedule:'Annual Feb',lastRun:'2026-02-01 03:00',status:'ok',rows:180},
+  {name:'GHI Report',tier:2,schedule:'Annual Oct',lastRun:'2025-10-10 03:00',status:'ok',rows:127},
+  {name:'Yale EPI',tier:2,schedule:'Biennial',lastRun:'2022-06-01 03:00',status:'stale',rows:180},
+  {name:'RSF Press Freedom',tier:2,schedule:'Annual May',lastRun:'2025-05-03 02:00',status:'ok',rows:180},
+  {name:'WEF Gender Gap',tier:2,schedule:'Annual Jun',lastRun:'2025-06-11 02:00',status:'ok',rows:148}
+];
+
+/* ══════════════════════════════════════════════════
+   STATE & SORT
+══════════════════════════════════════════════════ */
+var currentPage = 'home';
+var filteredGlobal = GLOBAL_DATA.slice();
+var sortKey = null;
+var sortDir = 1;
+var chartsReady = {};
+var currentSlug = null;
+
+/* ══════════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════════ */
+function showPage(id) {
+  var pages = document.querySelectorAll('.page');
+  for (var i = 0; i < pages.length; i++) { pages[i].classList.remove('active'); }
+
+  var allBtns = document.querySelectorAll('.nav-btn,.sb-btn,.mob-btn');
+  for (var j = 0; j < allBtns.length; j++) { allBtns[j].classList.remove('active'); }
+
+  var pg = document.getElementById('page-' + id);
+  if (pg) { pg.classList.add('active'); }
+
+  var nb = document.getElementById('nav-' + id);
+  var sb = document.getElementById('sb-' + id);
+  var mb = document.getElementById('mob-' + id);
+  if (nb) nb.classList.add('active');
+  if (sb) sb.classList.add('active');
+  if (mb) mb.classList.add('active');
+
+  currentPage = id;
+
+  if (id === 'home' && !chartsReady.home) {
+    window.setTimeout(function() { tryInitHome(); }, 300);
+  }
+  if (id === 'statedetail' && !chartsReady.statedetail) {
+    window.setTimeout(function() { tryInitStateCharts(); }, 300);
+  }
+  if (id === 'compare') {
+    window.setTimeout(function() { tryInitCompare(); }, 300);
+  }
+  if (id === 'sources') { renderSources(); }
+  if (id === 'admin') { renderAdmin(); }
+  if (id === 'state') { renderStateTable(); }
+}
+
+/* ══════════════════════════════════════════════════
+   THEME
+══════════════════════════════════════════════════ */
+function toggleTheme() {
+  var html = document.documentElement;
+  var isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+  chartsReady = {};
+  window.setTimeout(function() {
+    if (currentPage === 'home') tryInitHome();
+    if (currentPage === 'statedetail') tryInitStateCharts();
+    if (currentPage === 'compare') tryInitCompare();
+    if (currentPage === 'detail' && currentSlug) openDetail(currentSlug);
+  }, 100);
+}
+
+/* ══════════════════════════════════════════════════
+   COLORS
+══════════════════════════════════════════════════ */
+function C() {
+  var s = getComputedStyle(document.documentElement);
+  return {
+    accent: s.getPropertyValue('--accent').trim() || '#ff7a2f',
+    accent2: s.getPropertyValue('--accent2').trim() || '#22d3a0',
+    accent3: s.getPropertyValue('--accent3').trim() || '#4b9fff',
+    text: s.getPropertyValue('--text2').trim() || '#9ba3bc',
+    grid: s.getPropertyValue('--border').trim() || '#2a2f42'
+  };
+}
+
+function chartOpts(label, reverse) {
+  var colors = C();
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: {duration: 400},
+    plugins: {legend: {labels: {color: colors.text, font: {size: 11}, boxWidth: 12}}},
+    scales: {
+      x: {ticks: {color: colors.text, font: {size: 10}, maxRotation: 45}, grid: {color: colors.grid}},
+      y: {ticks: {color: colors.text, font: {size: 10}}, grid: {color: colors.grid}, title: {display: true, text: label, color: colors.text, font: {size: 10}}, reverse: reverse || false}
+    }
+  };
+}
+
+function destroyChart(id) {
+  var existing = Chart.getChart(id);
+  if (existing) existing.destroy();
+}
+
+/* ══════════════════════════════════════════════════
+   HOME CHARTS
+══════════════════════════════════════════════════ */
+function tryInitHome() {
+  var el1 = document.getElementById('chartLPI');
+  var el2 = document.getElementById('chartHDI');
+  if (!el1 || !el2) { return; }
+  if (el1.offsetWidth === 0) { window.setTimeout(tryInitHome, 400); return; }
+  try {
+    destroyChart('chartLPI');
+    var colors = C();
+    new Chart(el1.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: ['2010','2012','2014','2016','2018*','2020','2023'],
+        datasets: [{label: 'India LPI Rank', data: [47,46,54,35,44,44,38],
+          borderColor: colors.accent, backgroundColor: colors.accent + '20',
+          tension: 0.4, fill: true, pointRadius: 5, pointBackgroundColor: colors.accent}]
+      },
+      options: chartOpts('Rank (lower = better)', true)
+    });
+
+    destroyChart('chartHDI');
+    new Chart(el2.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: ['2010','2012','2015','2017','2019','2021','2022','2025'],
+        datasets: [{label: 'HDI Score', data: [0.581,0.598,0.619,0.636,0.645,0.633,0.676,0.685],
+          borderColor: colors.accent2, backgroundColor: colors.accent2 + '20',
+          tension: 0.4, fill: true, pointRadius: 5, pointBackgroundColor: colors.accent2}]
+      },
+      options: chartOpts('Score (0-1)', false)
+    });
+    chartsReady.home = true;
+  } catch(e) { /* non-fatal */ }
+}
+
+/* ══════════════════════════════════════════════════
+   HOME CARDS
+══════════════════════════════════════════════════ */
+function renderHomeCards() {
+  var el = document.getElementById('home-cards');
+  if (!el) return;
+  var sorted = GLOBAL_DATA.slice().sort(function(a, b) { return Math.abs(b.change) - Math.abs(a.change); });
+  var top6 = sorted.slice(0, 6);
+  var html = '';
+  for (var i = 0; i < top6.length; i++) {
+    var d = top6[i];
+    var chgClass = d.change > 0 ? 'up' : d.change < 0 ? 'dn' : 'flat';
+    var chgText = d.change > 0 ? '&#9650; +' + d.change : d.change < 0 ? '&#9660; ' + d.change : '&#8212; 0';
+    html += '<div class="card" onclick="openDetail(\'' + d.slug + '\')">';
+    html += '<div class="card-top">';
+    html += '<span class="cat-tag cat-' + d.cat + '">' + d.cat.replace('_',' ') + '</span>';
+    html += '<div><div class="card-rank-num">' + d.rank + '</div><div class="card-rank-of">of ' + d.total + '</div></div>';
+    html += '</div>';
+    html += '<div class="card-name">' + d.name + '</div>';
+    html += '<div class="card-pub">' + d.pub + '</div>';
+    html += '<div class="card-foot"><span class="chg ' + chgClass + '">' + chgText + '</span>';
+    html += '<span class="year-tag">' + d.year + '</span></div>';
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════
+   GLOBAL TABLE
+══════════════════════════════════════════════════ */
+function renderGlobalTable() {
+  var tbody = document.getElementById('global-tbody');
+  if (!tbody) return;
+  var html = '';
+  for (var i = 0; i < filteredGlobal.length; i++) {
+    var d = filteredGlobal[i];
+    var chgHtml = d.change > 0 ? '<span class="chg up">&#9650; +' + d.change + '</span>' : d.change < 0 ? '<span class="chg dn">&#9660; ' + d.change + '</span>' : '<span class="chg flat">&#8212;</span>';
+    var srcCls = d.src === 'api' ? 'src-api' : d.src === 'csv' ? 'src-csv' : 'src-pdf';
+    var srcTxt = d.src === 'api' ? '&#128268; API' : d.src === 'csv' ? '&#128196; CSV' : '&#128209; PDF';
+    html += '<tr onclick="openDetail(\'' + d.slug + '\')">';
+    html += '<td><strong>' + d.name + '</strong><br><small style="color:var(--text3)">' + d.pub + '</small></td>';
+    html += '<td class="td-rank">#' + d.rank + '</td>';
+    html += '<td>' + d.total + '</td>';
+    html += '<td>' + chgHtml + '</td>';
+    html += '<td>' + (d.score !== null ? d.score : '—') + '</td>';
+    html += '<td><span class="conf-dot ' + d.conf.toLowerCase() + '"></span>' + d.conf + '</td>';
+    html += '<td><span class="src-badge ' + srcCls + '">' + srcTxt + '</span></td>';
+    html += '<td>' + d.year + '</td>';
+    html += '</tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+function filterGlobal() {
+  var gsEl = document.getElementById('globalSearch');
+  var cfEl = document.getElementById('catFilter');
+  var yfEl = document.getElementById('yearFilter');
+  var q = gsEl ? gsEl.value.toLowerCase() : '';
+  var cat = cfEl ? cfEl.value : '';
+  var yr = yfEl ? yfEl.value : '';
+  filteredGlobal = [];
+  for (var i = 0; i < GLOBAL_DATA.length; i++) {
+    var d = GLOBAL_DATA[i];
+    var matchQ = !q || d.name.toLowerCase().indexOf(q) > -1 || d.pub.toLowerCase().indexOf(q) > -1;
+    var matchC = !cat || d.cat === cat;
+    var matchY = !yr || String(d.year) === yr;
+    if (matchQ && matchC && matchY) filteredGlobal.push(d);
+  }
+  renderGlobalTable();
+}
+
+function filterByCat(cat) {
+  var cfEl = document.getElementById('catFilter');
+  if (cfEl) cfEl.value = cat;
+  filterGlobal();
+  showPage('global');
+}
+
+function sortTable(key) {
+  if (sortKey === key) { sortDir = -sortDir; } else { sortKey = key; sortDir = 1; }
+  filteredGlobal.sort(function(a, b) {
+    var av = a[key], bv = b[key];
+    if (av === null) av = 9999; if (bv === null) bv = 9999;
+    if (typeof av === 'string') return sortDir * av.localeCompare(bv);
+    return sortDir * (av - bv);
+  });
+  renderGlobalTable();
+}
+
+/* ══════════════════════════════════════════════════
+   INDEX DETAIL
+══════════════════════════════════════════════════ */
+function openDetail(slug) {
+  var index = null;
+  for (var i = 0; i < GLOBAL_DATA.length; i++) {
+    if (GLOBAL_DATA[i].slug === slug) { index = GLOBAL_DATA[i]; break; }
+  }
+  var detail = DETAIL_DATA[slug];
+  if (!index || !detail) return;
+  currentSlug = slug;
+
+  document.getElementById('d-rank').textContent = index.rank;
+  document.getElementById('d-of').textContent = 'of ' + index.total + ' countries';
+  var chgEl = document.getElementById('d-chg');
+  if (index.change > 0) { chgEl.innerHTML = '&#9650; +' + index.change + ' from prev'; chgEl.style.color = 'var(--success)'; }
+  else if (index.change < 0) { chgEl.innerHTML = '&#9660; ' + index.change + ' from prev'; chgEl.style.color = 'var(--danger)'; }
+  else { chgEl.textContent = '— No change'; chgEl.style.color = 'var(--text3)'; }
+
+  document.getElementById('d-name').textContent = index.name;
+  document.getElementById('d-pub').textContent = 'Published by: ' + index.pub + ' · ' + index.year;
+
+  var tagsHtml = '';
+  for (var t = 0; t < detail.tags.length; t++) { tagsHtml += '<span class="detail-tag">' + detail.tags[t] + '</span>'; }
+  var srcTxt = index.src === 'api' ? '&#128268; Official API' : index.src === 'csv' ? '&#128196; Official CSV' : '&#128209; Official PDF';
+  tagsHtml += '<span class="freshness">' + srcTxt + '</span>';
+  document.getElementById('d-tags').innerHTML = tagsHtml;
+
+  document.getElementById('d-chart-title').textContent = "India's " + index.name + ' — Historical Trend';
+  document.getElementById('d-chart-meta').textContent = index.pub + ' · ' + detail.note;
+  document.getElementById('d-method').textContent = detail.method;
+
+  var warnEl = document.getElementById('d-warn');
+  if (detail.warn) { warnEl.textContent = detail.warn; warnEl.style.display = 'block'; }
+  else { warnEl.style.display = 'none'; }
+
+  chartsReady.detail = false;
+  showPage('detail');
+  window.setTimeout(function() { tryInitDetailChart(index, detail); }, 300);
+}
+
+function tryInitDetailChart(index, detail) {
+  var el = document.getElementById('chartDetail');
+  if (!el) return;
+  if (el.offsetWidth === 0) { window.setTimeout(function() { tryInitDetailChart(index, detail); }, 300); return; }
+  try {
+    var colors = C();
+    var isRank = detail.note.toLowerCase().indexOf('score') === -1;
+    destroyChart('chartDetail');
+    new Chart(el.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: detail.trendL,
+        datasets: [{
+          label: 'India — ' + index.name,
+          data: detail.trendD,
+          borderColor: colors.accent,
+          backgroundColor: colors.accent + '20',
+          tension: 0.4, fill: true, pointRadius: 6, pointBackgroundColor: colors.accent
+        }]
+      },
+      options: chartOpts(detail.note, isRank)
+    });
+    chartsReady.detail = true;
+  } catch(e) {}
+}
+
+/* ══════════════════════════════════════════════════
+   STATE TABLE
+══════════════════════════════════════════════════ */
+function renderStateTable() {
+  var tbody = document.getElementById('state-tbody');
+  if (!tbody) return;
+  var html = '';
+  for (var i = 0; i < STATE_DATA.length; i++) {
+    var d = STATE_DATA[i];
+    var chgHtml = d.change > 0 ? '<span class="chg up">&#9650; +' + d.change + '</span>' : d.change < 0 ? '<span class="chg dn">&#9660; ' + d.change + '</span>' : '<span class="chg flat">&#8212;</span>';
+    html += '<tr onclick="showPage(\'statedetail\')" style="cursor:pointer">';
+    html += '<td class="td-rank">' + d.rank + '</td>';
+    html += '<td><strong>' + d.name + '</strong></td>';
+    html += '<td><strong>' + d.score + '</strong></td>';
+    html += '<td>' + chgHtml + '</td>';
+    html += '</tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════
+   STATE CHARTS
+══════════════════════════════════════════════════ */
+function tryInitStateCharts() {
+  var el1 = document.getElementById('chartStateKL');
+  var el2 = document.getElementById('chartStateMulti');
+  if (!el1 || !el2) return;
+  if (el1.offsetWidth === 0) { window.setTimeout(tryInitStateCharts, 300); return; }
+  try {
+    var colors = C();
+    destroyChart('chartStateKL');
+    new Chart(el1.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['2019','2020','2021','2022','2023','2024'],
+        datasets: [{label: 'SDG Score', data: [70,72,75,75,79,82],
+          backgroundColor: colors.accent2 + 'cc', borderColor: colors.accent2, borderWidth: 2, borderRadius: 6}]
+      },
+      options: chartOpts('Score', false)
+    });
+    destroyChart('chartStateMulti');
+    new Chart(el2.getContext('2d'), {
+      type: 'radar',
+      data: {
+        labels: ['SDG Index','Health','Education','Gender','Environment','Governance'],
+        datasets: [
+          {label: 'Kerala', data: [82,88,95,74,65,78], borderColor: colors.accent2, backgroundColor: colors.accent2 + '22', pointBackgroundColor: colors.accent2},
+          {label: 'India Avg', data: [65,58,63,48,30,55], borderColor: colors.accent3, backgroundColor: colors.accent3 + '22', pointBackgroundColor: colors.accent3}
+        ]
+      },
+      options: {responsive: true, maintainAspectRatio: false,
+        scales: {r: {grid: {color: colors.grid}, ticks: {display: false}, pointLabels: {color: colors.text, font: {size: 11}}, suggestedMin: 0, suggestedMax: 100}},
+        plugins: {legend: {labels: {color: colors.text, font: {size: 11}}}}
+      }
+    });
+    chartsReady.statedetail = true;
+  } catch(e) {}
+}
+
+/* ══════════════════════════════════════════════════
+   COMPARE
+══════════════════════════════════════════════════ */
+function updateCompare() {
+  chartsReady.compare = false;
+  tryInitCompare();
+}
+
+function tryInitCompare() {
+  var el = document.getElementById('chartCompare');
+  if (!el) return;
+  if (el.offsetWidth === 0) { window.setTimeout(tryInitCompare, 300); return; }
+
+  var aEl = document.getElementById('compareA');
+  var bEl = document.getElementById('compareB');
+  var a = (aEl && aEl.value) ? aEl.value : 'india';
+  var b = (bEl && bEl.value) ? bEl.value : 'china';
+  var da = COMPARE_DATA[a] || COMPARE_DATA.india;
+  var db = COMPARE_DATA[b] || COMPARE_DATA.china;
+  var labels = ['Logistics','Human Dev','Transparency','Environment','Innovation'];
+  var aLabel = a.charAt(0).toUpperCase() + a.slice(1);
+  var bLabel = b.charAt(0).toUpperCase() + b.slice(1);
+
+  var headA = document.getElementById('cmp-head-a');
+  var headB = document.getElementById('cmp-head-b');
+  if (headA) headA.textContent = aLabel;
+  if (headB) headB.textContent = bLabel;
+
+  try {
+    var colors = C();
+    destroyChart('chartCompare');
+    new Chart(el.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {label: aLabel, data: [da.lpi,da.hdi,da.cpi,da.epi,da.gii], backgroundColor: colors.accent + 'cc', borderColor: colors.accent, borderWidth: 2, borderRadius: 5},
+          {label: bLabel, data: [db.lpi,db.hdi,db.cpi,db.epi,db.gii], backgroundColor: colors.accent3 + 'cc', borderColor: colors.accent3, borderWidth: 2, borderRadius: 5}
+        ]
+      },
+      options: {responsive: true, maintainAspectRatio: false, animation: {duration: 400},
+        plugins: {legend: {labels: {color: colors.text, font: {size: 11}}}},
+        scales: {x: {ticks: {color: colors.text}, grid: {color: colors.grid}}, y: {ticks: {color: colors.text}, grid: {color: colors.grid}, max: 100}}
+      }
+    });
+    chartsReady.compare = true;
+  } catch(e) {}
+
+  var cmpKeys = ['lpi','hdi','cpi','epi','gii'];
+  var cmpNames = ['Logistics Performance','Human Development','Corruption Perception','Environment Perf.','Innovation Index'];
+  var rowsEl = document.getElementById('compare-rows');
+  if (!rowsEl) return;
+  var html = '';
+  for (var i = 0; i < cmpKeys.length; i++) {
+    var av = da[cmpKeys[i]];
+    var bv = db[cmpKeys[i]];
+    var betterHtml = av > bv ? '<span class="better-badge better-a">' + aLabel + '</span>' : av < bv ? '<span class="better-badge better-b">' + bLabel + '</span>' : '<span class="better-badge better-eq">Tie</span>';
+    html += '<div class="compare-row-item">';
+    html += '<div>' + cmpNames[i] + '</div><div>' + av.toFixed(1) + '%</div><div>' + bv.toFixed(1) + '%</div>';
+    html += '<div class="better-col">' + betterHtml + '</div></div>';
+  }
+  rowsEl.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════
+   SOURCES
+══════════════════════════════════════════════════ */
+function renderSources() {
+  var el = document.getElementById('source-panels');
+  if (!el || el.children.length > 0) return;
+  var html = '';
+  for (var i = 0; i < SOURCES.length; i++) {
+    var s = SOURCES[i];
+    html += '<div class="source-panel">';
+    html += '<div class="source-head"><div class="source-icon">' + s.icon + '</div>';
+    html += '<div><div class="source-name">' + s.name + '</div><div class="source-type-lbl">Tier ' + s.tier + ' · ' + s.type + '</div></div>';
+    html += '<span class="freshness" style="margin-left:auto">Updated ' + s.fetched + '</span></div>';
+    html += '<div class="source-fields">';
+    html += '<div><div class="sf-label">Source URL</div><a class="sf-val sf-link" href="' + s.url + '" target="_blank">' + s.url.slice(0, 40) + '...</a></div>';
+    html += '<div><div class="sf-label">Confidence</div><div class="sf-val"><span class="conf-dot ' + s.conf.toLowerCase() + '"></span>' + s.conf + '</div></div>';
+    html += '<div><div class="sf-label">Indexes</div><div class="sf-val">' + s.indexes + '</div></div>';
+    html += '<div><div class="sf-label">License</div><div class="sf-val">' + s.tos + '</div></div>';
+    html += '<div><div class="sf-label">robots.txt</div><div class="sf-val">' + (s.robots ? '&#10003; Checked' : '&#9888; Pending') + '</div></div>';
+    html += '</div></div>';
+  }
+  el.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════
+   ADMIN
+══════════════════════════════════════════════════ */
+function renderAdmin() {
+  var el = document.getElementById('job-list');
+  if (!el || el.children.length > 0) return;
+  var html = '<div class="job-head"><div>Job Name</div><div>Tier</div><div class="j-sched">Schedule</div><div>Last Run</div><div>Action</div></div>';
+  for (var i = 0; i < JOBS.length; i++) {
+    var j = JOBS[i];
+    var dotCls = j.status === 'ok' ? 'status-ok' : j.status === 'stale' ? 'status-pend' : 'status-err';
+    html += '<div class="job-row">';
+    html += '<div><span class="status-dot ' + dotCls + '"></span>' + j.name + '</div>';
+    html += '<div>T' + j.tier + '</div>';
+    html += '<div class="j-sched">' + j.schedule + '</div>';
+    html += '<div style="font-size:11px;color:var(--text3)">' + j.lastRun + '</div>';
+    html += '<div><button class="trig-btn" onclick="alert(\'Manual trigger queued for ' + j.name + '\')">&#9654; Run</button></div>';
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════
+   EXPORT
+══════════════════════════════════════════════════ */
+function exportCSV() {
+  var rows = [['Index Name','Rank','Out Of','Change','Score','Year','Confidence','Source']];
+  for (var i = 0; i < GLOBAL_DATA.length; i++) {
+    var d = GLOBAL_DATA[i];
+    rows.push([d.name, d.rank, d.total, d.change, d.score !== null ? d.score : '', d.year, d.conf, d.src]);
+  }
+  var csv = '';
+  for (var r = 0; r < rows.length; r++) { csv += rows[r].join(',') + '\n'; }
+  var a = document.createElement('a');
+  a.href = 'data:text/csv,' + encodeURIComponent(csv);
+  a.download = 'india-index-rankings.csv';
+  a.click();
+}
+
+/* ══════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+  renderHomeCards();
+  renderGlobalTable();
+  renderStateTable();
+  window.setTimeout(tryInitHome, 400);
+});
+</script>
+</body>
+</html>
