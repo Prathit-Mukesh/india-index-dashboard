@@ -875,12 +875,12 @@ td { padding: 13px 16px; font-size: 13px; }
         <div class="chart-card">
           <div class="chart-title">LPI Rank — Logistics Performance Index</div>
           <div class="chart-meta">World Bank · Official API · 2010–2023</div>
-          <div class="chart-container"><canvas id="chartLPI"></canvas></div>
+          <div class="chart-container" style="position:relative;height:200px;width:100%"><canvas id="chartLPI" style="display:block;width:100%;height:100%"></canvas></div>
         </div>
         <div class="chart-card">
           <div class="chart-title">HDI Score — Human Development Index</div>
           <div class="chart-meta">UNDP · Official API · 2010–2023</div>
-          <div class="chart-container"><canvas id="chartHDI"></canvas></div>
+          <div class="chart-container" style="position:relative;height:200px;width:100%"><canvas id="chartHDI" style="display:block;width:100%;height:100%"></canvas></div>
         </div>
       </div>
     </div>
@@ -1385,16 +1385,20 @@ function showPage(id) {
   if (mnavEl) mnavEl.classList.add('active');
 
   currentPage = id;
-  
-  // Init charts lazily
+
+  // Init charts lazily — always deferred so canvas is visible first
   if (id === 'home' && !chartsInit.home) {
-    setTimeout(() => { try { initHomeCharts(); chartsInit.home = true; } catch(e){} }, 100);
+    setTimeout(safeInitCharts, 200);
   }
   if (id === 'statedetail' && !chartsInit.statedetail) {
-    setTimeout(() => { try { initStateCharts(); chartsInit.statedetail = true; } catch(e){} }, 100);
+    setTimeout(function() {
+      try { initStateCharts(); chartsInit.statedetail = true; } catch(e) { console.warn(e); }
+    }, 200);
   }
   if (id === 'compare' && !chartsInit.compare) {
-    setTimeout(() => { try { initCompareChart(); chartsInit.compare = true; } catch(e){} }, 100);
+    setTimeout(function() {
+      try { initCompareChart(); chartsInit.compare = true; } catch(e) { console.warn(e); }
+    }, 200);
   }
   if (id === 'state') renderStateLegend();
   if (id === 'admin') renderAdmin();
@@ -1571,12 +1575,19 @@ function openIndexDetail(slug) {
 
   chartsInit.detail = false;
   showPage('detail');
-  setTimeout(() => {
+  setTimeout(function() {
     try {
-      initDetailChart(index, detail);
-      chartsInit.detail = true;
+      var canvas = document.getElementById('chartDetailTrend');
+      if (canvas && canvas.offsetWidth > 0) {
+        initDetailChart(index, detail);
+        chartsInit.detail = true;
+      } else {
+        setTimeout(function() {
+          try { initDetailChart(index, detail); chartsInit.detail = true; } catch(e) { console.warn(e); }
+        }, 400);
+      }
     } catch(e) { console.warn('Detail chart error:', e); }
-  }, 150);
+  }, 200);
 }
 
 // ─── RENDER HOME CARDS ────────────────────────────────────────
@@ -1859,115 +1870,110 @@ function destroyChart(id) {
 }
 
 function initHomeCharts() {
-  const C = getChartColors();
+  var C = getChartColors();
+  var el1 = document.getElementById('chartLPI');
+  var el2 = document.getElementById('chartHDI');
+  if (!el1 || !el2) return;
 
   destroyChart('chartLPI');
-  new Chart(document.getElementById('chartLPI').getContext('2d'), {
+  new Chart(el1.getContext('2d'), {
     type: 'line',
     data: {
       labels: ['2010','2012','2014','2016','2018','2020','2023'],
-      datasets: [{
-        label: 'India LPI Rank',
-        data: [47, 46, 54, 35, 44, 44, 38],
-        borderColor: C.accent, backgroundColor: C.accent + '18',
-        tension: 0.4, fill: true, pointRadius: 5, pointBackgroundColor: C.accent,
-      }]
+      datasets: [{ label: 'India LPI Rank', data: [47,46,54,35,44,44,38],
+        borderColor: C.accent, backgroundColor: C.accent+'18',
+        tension: 0.4, fill: true, pointRadius: 5, pointBackgroundColor: C.accent }]
     },
     options: chartOpts('Rank (lower = better)', C, true)
   });
 
   destroyChart('chartHDI');
-  new Chart(document.getElementById('chartHDI').getContext('2d'), {
+  new Chart(el2.getContext('2d'), {
     type: 'line',
     data: {
       labels: ['2010','2012','2015','2017','2019','2021','2022','2025'],
-      datasets: [{
-        label: 'HDI Score',
-        data: [0.581, 0.598, 0.619, 0.636, 0.645, 0.633, 0.676, 0.685],
-        borderColor: C.accent2, backgroundColor: C.accent2 + '18',
-        tension: 0.4, fill: true, pointRadius: 5, pointBackgroundColor: C.accent2,
-      }]
+      datasets: [{ label: 'HDI Score', data: [0.581,0.598,0.619,0.636,0.645,0.633,0.676,0.685],
+        borderColor: C.accent2, backgroundColor: C.accent2+'18',
+        tension: 0.4, fill: true, pointRadius: 5, pointBackgroundColor: C.accent2 }]
     },
     options: chartOpts('Score (0–1)', C, false)
   });
 }
 
 function initDetailChart(index, detail) {
-  const C = getChartColors();
-  const isRank = !detail.trendNote.toLowerCase().includes('score');
-  destroyChart('chartDetailTrend');
-  new Chart(document.getElementById('chartDetailTrend').getContext('2d'), {
-    type: 'line',
+  var C = getChartColors();
+  var el = document.getElementById("chartDetailTrend");
+  if (!el) return;
+  var isRank = !detail.trendNote.toLowerCase().includes("score");
+  destroyChart("chartDetailTrend");
+  new Chart(el.getContext("2d"), {
+    type: "line",
     data: {
       labels: detail.trendLabels,
-      datasets: [{
-        label: `India — ${index.name}`,
-        data: detail.trendData,
-        borderColor: C.accent,
-        backgroundColor: C.accent + '18',
-        tension: 0.4, fill: true, pointRadius: 6,
-        pointBackgroundColor: C.accent,
-      }]
+      datasets: [{ label: "India u2014 " + index.name, data: detail.trendData,
+        borderColor: C.accent, backgroundColor: C.accent + "18",
+        tension: 0.4, fill: true, pointRadius: 6, pointBackgroundColor: C.accent }]
     },
     options: chartOpts(detail.trendNote, C, isRank)
   });
 }
 
 function initStateCharts() {
-  const C = getChartColors();
+  var C = getChartColors();
+  var elKL = document.getElementById('chartStateKL');
+  var elMulti = document.getElementById('chartStateMulti');
   destroyChart('chartStateKL');
-  new Chart(document.getElementById('chartStateKL').getContext('2d'), {
+  if (elKL) new Chart(elKL.getContext('2d'), {
     type: 'bar',
     data: {
       labels: ['2019','2020','2021','2022','2023','2024'],
-      datasets: [{
-        label: 'SDG Score',
-        data: [70, 72, 75, 75, 79, 82],
-        backgroundColor: C.accent2 + 'cc',
-        borderColor: C.accent2,
-        borderWidth: 2,
-        borderRadius: 6,
-      }]
+      datasets: [{ label: 'SDG Score', data: [70,72,75,75,79,82],
+        backgroundColor: C.accent2+'cc', borderColor: C.accent2, borderWidth: 2, borderRadius: 6 }]
     },
     options: chartOpts('Score', C, false)
   });
 
   destroyChart('chartStateMulti');
-  new Chart(document.getElementById('chartStateMulti').getContext('2d'), {
+  if (elMulti) new Chart(elMulti.getContext('2d'), {
     type: 'radar',
     data: {
       labels: ['SDG Index','Health','Education','Gender','Environment','Governance'],
       datasets: [
-        { label: 'Kerala', data: [82, 88, 95, 74, 65, 78], borderColor: C.accent2, backgroundColor: C.accent2 + '22', pointBackgroundColor: C.accent2 },
-        { label: 'India Avg', data: [65, 58, 63, 48, 30, 55], borderColor: C.accent3, backgroundColor: C.accent3 + '22', pointBackgroundColor: C.accent3 },
+        { label: 'Kerala', data: [82,88,95,74,65,78], borderColor: C.accent2, backgroundColor: C.accent2+'22', pointBackgroundColor: C.accent2 },
+        { label: 'India Avg', data: [65,58,63,48,30,55], borderColor: C.accent3, backgroundColor: C.accent3+'22', pointBackgroundColor: C.accent3 },
       ]
     },
-    options: {
-      responsive: true, maintainAspectRatio: false,
+    options: { responsive: true, maintainAspectRatio: false,
       scales: { r: { grid: { color: C.grid }, ticks: { display: false }, pointLabels: { color: C.text, font: { size: 11 } }, suggestedMin: 0, suggestedMax: 100 } },
-      plugins: { legend: { labels: { color: C.text, font: { size: 11 } } } },
+      plugins: { legend: { labels: { color: C.text, font: { size: 11 } } } }
     }
   });
 }
 
 function initCompareChart() {
-  const C = getChartColors();
-  const a = document.getElementById('compareA')?.value ?? 'india';
-  const b = document.getElementById('compareB')?.value ?? 'china';
-  const da = COMPARE_DATA[a] ?? COMPARE_DATA.india;
-  const db = COMPARE_DATA[b] ?? COMPARE_DATA.china;
-  const labels = ['Logistics','Human Dev','Transparency','Environment','Innovation'];
+  var C = getChartColors();
+  var aEl = document.getElementById('compareA');
+  var bEl = document.getElementById('compareB');
+  var a = (aEl ? aEl.value : null) || 'india';
+  var b = (bEl ? bEl.value : null) || 'china';
+  var da = COMPARE_DATA[a] || COMPARE_DATA.india;
+  var db = COMPARE_DATA[b] || COMPARE_DATA.china;
+  var labels = ['Logistics','Human Dev','Transparency','Environment','Innovation'];
+  var elC = document.getElementById('chartCompare');
   destroyChart('chartCompare');
-  new Chart(document.getElementById('chartCompare').getContext('2d'), {
+  if (elC) new Chart(elC.getContext('2d'), {
     type: 'bar',
     data: {
-      labels,
+      labels: labels,
       datasets: [
-        { label: a.charAt(0).toUpperCase()+a.slice(1), data: Object.values(da), backgroundColor: C.accent + 'cc', borderColor: C.accent, borderWidth: 2, borderRadius: 5 },
-        { label: b.charAt(0).toUpperCase()+b.slice(1), data: Object.values(db), backgroundColor: C.accent3 + 'cc', borderColor: C.accent3, borderWidth: 2, borderRadius: 5 },
+        { label: a.charAt(0).toUpperCase()+a.slice(1), data: Object.values(da), backgroundColor: C.accent+'cc', borderColor: C.accent, borderWidth: 2, borderRadius: 5 },
+        { label: b.charAt(0).toUpperCase()+b.slice(1), data: Object.values(db), backgroundColor: C.accent3+'cc', borderColor: C.accent3, borderWidth: 2, borderRadius: 5 },
       ]
     },
-    options: { ...chartOpts('Percentile (higher = better)', C, false), scales: { x: { ticks: { color: C.text }, grid: { color: C.grid } }, y: { ticks: { color: C.text }, grid: { color: C.grid }, max: 100 } } }
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400 },
+      plugins: { legend: { labels: { color: C.text, font: { size: 11 } } } },
+      scales: { x: { ticks: { color: C.text }, grid: { color: C.grid } }, y: { ticks: { color: C.text }, grid: { color: C.grid }, max: 100 } }
+    }
   });
   renderCompareRows();
 }
@@ -1989,4 +1995,36 @@ function chartOpts(yLabel, C, reverseY = false) {
         ticks: { color: C.text, font: { size: 10 } },
         grid: { color: C.grid },
         title: { display: true, text: yLabel, color: C.text, font: { size: 10 } },
-        reverse: revers
+        reverse: reverseY
+      },
+    }
+  };
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+function safeInitCharts() {
+  try {
+    var c1 = document.getElementById('chartLPI');
+    var c2 = document.getElementById('chartHDI');
+    if (!c1 || !c2) return;
+    if (c1.offsetWidth === 0) { setTimeout(safeInitCharts, 300); return; }
+    initHomeCharts();
+    chartsInit.home = true;
+  } catch(e) { console.warn('Chart init (non-fatal):', e); }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  try { renderHomeCards(); } catch(e) { console.warn(e); }
+  try { renderGlobalTable(); } catch(e) { console.warn(e); }
+  try { renderStateTable(); } catch(e) { console.warn(e); }
+  setTimeout(safeInitCharts, 400);
+  try {
+    document.querySelectorAll('#stateGroup rect, #stateGroup circle').forEach(function(el) {
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', function() { showPage('statedetail'); });
+    });
+  } catch(e) {}
+});
+</script>
+</body>
+</html>
